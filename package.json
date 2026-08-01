@@ -1,0 +1,60 @@
+{
+  "name": "multi-agent-system",
+  "version": "1.0.0",
+  "description": "**Multi Agent System** — A billing and payments backend system covering products, plans, subscriptions, invoices, payments, webhook processing, provider abstraction, Stripe/Paddle-like adapters, idempotency, transaction logs, payment state machines, and billing domain modeling.",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "build": "tsup",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "verify": "./scripts/push-verify.sh",
+    "prepare": "husky",
+    "source-code:generate": "node scripts/generate-project-source.mjs",
+    "git:push": "./git-push.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AveryOn/payex-billing-system.git"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AveryOn/payex-billing-system/issues"
+  },
+  "homepage": "https://github.com/AveryOn/payex-billing-system#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "reflect-metadata": "^0.2.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^26.0.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import": "^2.32.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.8.4",
+    "tsup": "^8.5.1",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1",
+    "vitest": "^4.1.9"
+  }
+}
