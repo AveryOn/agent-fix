@@ -1,37 +1,23 @@
 # TODO List
 
-## 1. DI Module
+## 1. Project Foundation
 
-- [x] `[001]` ~~implement base DI container logic~~
-- [ ] `[002]` define module metadata with `imports`, `providers`, and `exports`
-- [ ] `[003]` implement module graph registration
-- [ ] `[004]` implement application bootstrap from `AppModule`
-- [ ] `[005]` remove the global container instance
-- [ ] `[006]` implement duplicate provider detection
-- [ ] `[007]` implement circular dependency detection
-- [ ] `[008]` implement application lifecycle and shutdown
-- [ ] `[009]` add DI unit tests
-- [ ] `[010]` add DI bootstrap smoke test
+- [ ] `[001]` rename package metadata and project references to `AgentFix`
+- [ ] `[002]` replace the custom DI module framework with a simple composition root
+- [ ] `[003]` remove unused DI container, module metadata, and lifecycle code
+- [ ] `[004]` wire application dependencies through `createApp`
+- [ ] `[005]` implement application start and graceful shutdown
+- [ ] `[006]` verify that the application starts with all required dependencies
 
-## 2. Application Bootstrap
+## 2. Config and Model Provider
 
-- [ ] `[011]` implement `AppModule`
-- [ ] `[012]` implement `createApp`
-- [ ] `[013]` connect application modules through DI
-- [ ] `[014]` implement application start
-- [ ] `[015]` implement graceful shutdown
-- [ ] `[016]` verify that the application starts without unresolved providers
-
-## 3. Config Module
-
-- [ ] `[017]` remove unused API and database environment variables
-- [ ] `[018]` add OpenAI configuration
-- [ ] `[019]` add runs directory configuration
-- [ ] `[020]` add agent retry and timeout configuration
-- [ ] `[021]` add logging configuration
-- [ ] `[022]` provide typed config through DI
-- [ ] `[023]` update `.env.example`
-- [ ] `[024]` add config validation tests
+- [ ] `[007]` add typed application configuration
+- [ ] `[008]` add OpenAI, runs, retry, timeout, logging, and Docker configuration
+- [ ] `[009]` validate environment variables with Zod
+- [ ] `[010]` define `ModelProvider` contract
+- [ ] `[011]` implement OpenAI structured outputs and tool calls
+- [ ] `[012]` collect token usage and request duration
+- [ ] `[013]` map API errors and timeouts to application errors
 
 Required environment variables:
 
@@ -44,61 +30,56 @@ LOG_PRETTY
 RUNS_ROOT
 MAX_AGENT_ATTEMPTS
 COMMAND_TIMEOUT_MS
+CONTEXT_TOKEN_BUDGET
+DOCKER_ENABLED
 ```
 
-## 4. Logger Module
+## 3. Logger and Trace Module
 
-- [ ] `[025]` add Pino
-- [ ] `[026]` define `LoggerPort`
-- [ ] `[027]` implement structured application logger
-- [ ] `[028]` add `runId`, `step`, `agent`, and `attempt` fields
-- [ ] `[029]` implement secret redaction
-- [ ] `[030]` support pretty development logs
-- [ ] `[031]` add logger tests
+- [ ] `[014]` implement structured logging with Pino
+- [ ] `[015]` add `runId`, `step`, `agent`, `attempt`, and `workspaceRevision` fields
+- [ ] `[016]` implement secret and prompt-data redaction
+- [ ] `[017]` define the trace event format
+- [ ] `[018]` implement JSONL trace writer
+- [ ] `[019]` save agent calls, tool calls, validation results, retries, and failures
+- [ ] `[020]` save prompt versions, token usage, estimated cost, and execution duration
 
-## 5. Trace Module
+Trace event:
 
-- [ ] `[032]` define trace event format
-- [ ] `[033]` implement JSONL trace writer
-- [ ] `[034]` save agent start and completion events
-- [ ] `[035]` save tool calls and tool results
-- [ ] `[036]` save validation results
-- [ ] `[037]` save retries and failures
-- [ ] `[038]` save token usage and execution duration
-- [ ] `[039]` add trace writer tests
+```ts
+interface TraceEvent {
+  timestamp: string
+  runId: string
+  step: string
+  agent?: string
+  attempt?: number
+  workspaceRevision?: string
+  type: string
+  input?: unknown
+  output?: unknown
+  durationMs?: number
+  tokenUsage?: TokenUsage
+  estimatedCostUsd?: number
+}
+```
 
-## 6. CLI Module
+## 4. CLI and Run Module
 
-- [ ] `[040]` define the `CliPort` contract
-- [ ] `[041]` implement CLI start and close methods
-- [ ] `[042]` implement the `run` command
-- [ ] `[043]` accept repository path
-- [ ] `[044]` accept bug description
-- [ ] `[045]` validate CLI arguments
-- [ ] `[046]` display pipeline progress
-- [ ] `[047]` display validation results
-- [ ] `[048]` implement human approval prompt
-- [ ] `[049]` add CLI smoke tests
+- [ ] `[021]` implement the `run` CLI command
+- [ ] `[022]` accept repository path and bug description
+- [ ] `[023]` validate CLI arguments and target repository
+- [ ] `[024]` generate a unique run identifier and run directory
+- [ ] `[025]` define run statuses and save `state.json` after every step
+- [ ] `[026]` display pipeline progress and validation results
+- [ ] `[027]` implement the human approval prompt
 
 Target command:
 
 ```bash
 npm run dev -- run \
-  --repo ./fixtures/billing \
+  --repo ./fixtures/billing-duplicate-payment \
   --task "Duplicate webhook delivery creates two payments"
 ```
-
-## 7. Run Module
-
-- [ ] `[050]` define `RunState`
-- [ ] `[051]` define run statuses
-- [ ] `[052]` generate unique run identifiers
-- [ ] `[053]` create a directory for every run
-- [ ] `[054]` save current state to `state.json`
-- [ ] `[055]` save run artifacts
-- [ ] `[056]` update state after every pipeline step
-- [ ] `[057]` implement completed and failed states
-- [ ] `[058]` add run state transition tests
 
 Run directory:
 
@@ -112,60 +93,92 @@ Run directory:
     agents/
     patches/
     validation.json
+    metrics.json
     final.diff
 ```
 
-## 8. Workspace Module
+## 5. Context Management Module
 
-- [ ] `[059]` define `WorkspacePort`
-- [ ] `[060]` validate the target repository path
-- [ ] `[061]` verify that the target is a Git repository
-- [ ] `[062]` read the base commit
-- [ ] `[063]` create one Git worktree for one run
-- [ ] `[064]` create a temporary branch for the run
-- [ ] `[065]` return the workspace path to other modules
-- [ ] `[066]` implement workspace cleanup
-- [ ] `[067]` implement workspace rollback
-- [ ] `[068]` add workspace integration tests
+- [ ] `[028]` define the `AgentContext` envelope
+- [ ] `[029]` define what each agent can and cannot see
+- [ ] `[030]` pass artifact references instead of the complete run history
+- [ ] `[031]` enforce a context and token budget for every agent
+- [ ] `[032]` summarize oversized investigation results
+- [ ] `[033]` attach the workspace revision to every context snapshot
+- [ ] `[034]` reject agent results produced from stale workspace context
+- [ ] `[035]` add context boundary and stale-context tests
 
-Workspace location:
+Context envelope:
 
-```text
-.runs/run-001/workspace
+```ts
+interface AgentContext {
+  runId: string
+  task: string
+  workspaceRevision: string
+  artifactIds: string[]
+  evidence: EvidenceReference[]
+  constraints: string[]
+  summary?: string
+}
 ```
 
-All agents inside one run must use the same workspace.
+Agent visibility:
 
-## 9. Repository Module
+```text
+Investigator:
+  task
+  repository tools
+  current workspace revision
 
-- [ ] `[069]` define `RepositoryPort`
-- [ ] `[070]` implement file listing
-- [ ] `[071]` implement code search
-- [ ] `[072]` implement file reading
-- [ ] `[073]` implement file range reading
-- [ ] `[074]` implement current commit reading
-- [ ] `[075]` implement changed file listing
-- [ ] `[076]` implement Git diff reading
-- [ ] `[077]` implement patch application
-- [ ] `[078]` prevent access outside the workspace
-- [ ] `[079]` reject binary and oversized files
-- [ ] `[080]` add repository adapter tests
+Reproducer:
+  task
+  confirmed investigation evidence
+  existing test structure
 
-## 10. Process Module
+Implementer:
+  confirmed evidence
+  failing reproduction test
+  allowed file scope
 
-- [ ] `[081]` define `ProcessRunnerPort`
-- [ ] `[082]` implement safe command execution
-- [ ] `[083]` implement command timeout
-- [ ] `[084]` capture stdout and stderr
-- [ ] `[085]` capture exit code and duration
-- [ ] `[086]` implement test command execution
-- [ ] `[087]` implement typecheck command execution
-- [ ] `[088]` implement lint command execution
-- [ ] `[089]` implement build command execution
-- [ ] `[090]` save command results as run artifacts
-- [ ] `[091]` add process runner tests
+Reviewer:
+  final diff
+  validation report
+  changed file list
+```
 
-Agents must not receive an unrestricted shell tool.
+## 6. Workspace and Repository Tools
+
+- [ ] `[036]` validate that the target is an accessible Git repository
+- [ ] `[037]` create an isolated workspace for every run
+- [ ] `[038]` save the base commit and current workspace revision
+- [ ] `[039]` implement file listing, code search, and file reading
+- [ ] `[040]` implement patch application and Git diff reading
+- [ ] `[041]` prevent path traversal and access outside the workspace
+- [ ] `[042]` reject forbidden, binary, and oversized files
+- [ ] `[043]` implement workspace rollback and cleanup
+
+Repository tools:
+
+```text
+listFiles
+searchCode
+readFile
+applyPatch
+getDiff
+getChangedFiles
+getWorkspaceRevision
+```
+
+All agents inside one run must use the same isolated workspace.
+
+## 7. Process Runner Module
+
+- [ ] `[044]` implement allowlisted command execution
+- [ ] `[045]` implement command timeout and process termination
+- [ ] `[046]` capture stdout, stderr, exit code, and duration
+- [ ] `[047]` implement test, typecheck, lint, and build operations
+- [ ] `[048]` save command results as run artifacts
+- [ ] `[049]` prevent agents from receiving unrestricted shell access
 
 Allowed operations:
 
@@ -176,163 +189,202 @@ runLint
 runBuild
 ```
 
-## 11. OpenAI Model Module
+## 8. Prompt Module
 
-- [ ] `[092]` install the OpenAI SDK
-- [ ] `[093]` define `ModelProviderPort`
-- [ ] `[094]` implement `OpenAiModelProvider`
-- [ ] `[095]` support structured outputs
-- [ ] `[096]` support agent tool calls
-- [ ] `[097]` validate model responses with Zod
-- [ ] `[098]` collect token usage
-- [ ] `[099]` collect request duration
-- [ ] `[100]` map OpenAI errors to application errors
-- [ ] `[101]` implement API timeout
-- [ ] `[102]` add mocked adapter tests
-- [ ] `[103]` add one manual live API test
-
-## 12. Prompt Module
-
-- [ ] `[104]` create prompt directories
-- [ ] `[105]` create investigator prompt
-- [ ] `[106]` create reproducer prompt
-- [ ] `[107]` create implementer prompt
-- [ ] `[108]` create reviewer prompt
-- [ ] `[109]` add prompt version identifiers
-- [ ] `[110]` load prompts through a prompt registry
-- [ ] `[111]` save prompt versions in traces
+- [ ] `[050]` create prompt directories for every agent
+- [ ] `[051]` create investigator, reproducer, implementer, and reviewer prompts
+- [ ] `[052]` define tool access and output constraints inside every prompt
+- [ ] `[053]` add prompt version identifiers
+- [ ] `[054]` load prompts through a prompt registry
+- [ ] `[055]` save prompt versions in traces and evaluation results
 
 Prompt structure:
 
 ```text
 prompts/
   investigator/
+    v1.md
   reproducer/
+    v1.md
   implementer/
+    v1.md
   reviewer/
+    v1.md
 ```
 
-## 13. Investigator Agent
+## 9. Investigator Agent
 
-- [ ] `[112]` define investigation input schema
-- [ ] `[113]` define investigation output schema
-- [ ] `[114]` implement repository search tool loop
-- [ ] `[115]` return related files and symbols
-- [ ] `[116]` return evidence references
-- [ ] `[117]` return a bug hypothesis
-- [ ] `[118]` validate all referenced files
-- [ ] `[119]` reject hallucinated file references
-- [ ] `[120]` add investigator tests
+- [ ] `[056]` define investigation input and output schemas
+- [ ] `[057]` implement the repository search tool loop
+- [ ] `[058]` return related files, symbols, and evidence references
+- [ ] `[059]` return a grounded bug hypothesis
+- [ ] `[060]` verify that every referenced file and symbol exists
+- [ ] `[061]` reject hallucinated references and stale investigation results
 
-## 14. Reproducer Agent
+Investigation result:
 
-- [ ] `[121]` define reproduction input schema
-- [ ] `[122]` define reproduction output schema
-- [ ] `[123]` inspect the existing test structure
-- [ ] `[124]` generate a reproduction test patch
-- [ ] `[125]` apply the test patch
-- [ ] `[126]` run the reproduction test
-- [ ] `[127]` verify that the test fails before the fix
-- [ ] `[128]` reject tests that already pass
-- [ ] `[129]` save the reproduction patch and test output
-- [ ] `[130]` add reproducer tests
+```ts
+interface InvestigationResult {
+  hypothesis: string
+  evidence: EvidenceReference[]
+  relatedFiles: string[]
+  workspaceRevision: string
+}
+```
 
-## 15. Implementer Agent
+## 10. Reproducer Agent
 
-- [ ] `[131]` define implementation input schema
-- [ ] `[132]` define implementation output schema
-- [ ] `[133]` provide confirmed investigation evidence
-- [ ] `[134]` provide the failing test result
-- [ ] `[135]` generate the implementation patch
-- [ ] `[136]` apply the implementation patch
-- [ ] `[137]` prevent modification of the reproduction test
-- [ ] `[138]` reject forbidden file changes
-- [ ] `[139]` save the implementation patch
-- [ ] `[140]` add implementer tests
+- [ ] `[062]` define reproduction input and output schemas
+- [ ] `[063]` inspect the existing test structure
+- [ ] `[064]` generate and apply a reproduction test patch
+- [ ] `[065]` run the reproduction test before implementation
+- [ ] `[066]` require the reproduction test to fail for the expected reason
+- [ ] `[067]` reject tests that already pass or do not reproduce the reported bug
+- [ ] `[068]` save the reproduction patch and command output
 
-## 16. Reviewer Agent
+Reproduction gate:
 
-- [ ] `[141]` define review input schema
-- [ ] `[142]` define review output schema
-- [ ] `[143]` provide the final diff
-- [ ] `[144]` provide test and validation results
-- [ ] `[145]` detect suspicious or unrelated changes
-- [ ] `[146]` report implementation risks
-- [ ] `[147]` report public API changes
-- [ ] `[148]` save the review result
-- [ ] `[149]` add reviewer tests
+```text
+Test passes before fix
+  → reject reproduction
 
-## 17. Validation Module
+Test fails for unrelated reason
+  → reject reproduction
 
-- [ ] `[150]` define validation result format
-- [ ] `[151]` validate agent output schemas
-- [ ] `[152]` validate file and symbol references
-- [ ] `[153]` validate patch application
-- [ ] `[154]` verify reproduction failure before the fix
-- [ ] `[155]` verify reproduction success after the fix
-- [ ] `[156]` run the full test suite
-- [ ] `[157]` run typecheck
-- [ ] `[158]` run lint
-- [ ] `[159]` run build
-- [ ] `[160]` validate changed file policies
-- [ ] `[161]` reject changes outside the allowed scope
-- [ ] `[162]` save the final validation report
-- [ ] `[163]` add validation unit tests
+Test fails for expected behavior
+  → continue
+```
 
-## 18. Retry and Failure Handling
+## 11. Implementer Agent
 
-- [ ] `[164]` define application error types
-- [ ] `[165]` define retryable errors
-- [ ] `[166]` define non-retryable errors
-- [ ] `[167]` implement schema repair retry
-- [ ] `[168]` implement implementation retry
-- [ ] `[169]` provide validation errors to the next attempt
-- [ ] `[170]` enforce maximum attempt limits
-- [ ] `[171]` stop the pipeline on fatal errors
-- [ ] `[172]` rollback failed patches
-- [ ] `[173]` save retry reasons in traces
-- [ ] `[174]` add retry policy tests
+- [ ] `[069]` define implementation input and output schemas
+- [ ] `[070]` provide only confirmed evidence and the failing test result
+- [ ] `[071]` generate and apply the implementation patch
+- [ ] `[072]` restrict changes to the allowed file scope
+- [ ] `[073]` prevent modification of the reproduction test
+- [ ] `[074]` rerun the reproduction test after implementation
+- [ ] `[075]` save the implementation patch and test result
 
-## 19. Orchestrator Module
+## 12. Reviewer Agent
 
-- [ ] `[175]` define the pipeline step sequence
-- [ ] `[176]` create a run
-- [ ] `[177]` create a workspace
-- [ ] `[178]` execute the Investigator Agent
-- [ ] `[179]` execute the Reproducer Agent
-- [ ] `[180]` verify the failing test
-- [ ] `[181]` execute the Implementer Agent
-- [ ] `[182]` execute mechanical validation
-- [ ] `[183]` execute the Reviewer Agent
-- [ ] `[184]` request human approval
-- [ ] `[185]` save the final diff
-- [ ] `[186]` complete or fail the run
-- [ ] `[187]` clean up the workspace when required
-- [ ] `[188]` add orchestrator integration tests
+- [ ] `[076]` define review input and output schemas
+- [ ] `[077]` provide the final diff and mechanical validation report
+- [ ] `[078]` detect suspicious, unrelated, or excessive changes
+- [ ] `[079]` report implementation risks and public API changes
+- [ ] `[080]` ground every review finding in the final diff
+- [ ] `[081]` save the review recommendation and evidence
 
-## 20. Approval Module
+## 13. Validation Module
 
-- [ ] `[189]` define approval result
-- [ ] `[190]` display changed files
-- [ ] `[191]` display final diff
-- [ ] `[192]` display test results
-- [ ] `[193]` display reviewer risks
-- [ ] `[194]` display token usage and retries
-- [ ] `[195]` support approve
-- [ ] `[196]` support reject
-- [ ] `[197]` save the approval decision
-- [ ] `[198]` add approval tests
+- [ ] `[082]` validate every agent output against its Zod schema
+- [ ] `[083]` validate file, symbol, and evidence references
+- [ ] `[084]` validate patch application
+- [ ] `[085]` verify reproduction failure before the fix
+- [ ] `[086]` verify reproduction success after the fix
+- [ ] `[087]` run the full test suite
+- [ ] `[088]` run typecheck, lint, and build
+- [ ] `[089]` validate changed file and forbidden file policies
+- [ ] `[090]` save the final validation report
+- [ ] `[091]` enforce deterministic validation gates before LLM review
 
-## 21. Billing Demo Fixture
+Validation order:
 
-- [ ] `[199]` create a small billing fixture project
-- [ ] `[200]` add payment webhook processing
-- [ ] `[201]` add duplicate payment bug
-- [ ] `[202]` add a minimal test environment
-- [ ] `[203]` add typecheck, lint, test, and build scripts
-- [ ] `[204]` initialize the fixture as a Git repository
-- [ ] `[205]` verify that the bug exists before AgentFix runs
-- [ ] `[206]` document the expected fix behavior
+```text
+Agent Output Schema
+  ↓
+Evidence References
+  ↓
+Patch Application
+  ↓
+Reproduction Gate
+  ↓
+Full Test Suite
+  ↓
+Typecheck
+  ↓
+Lint
+  ↓
+Build
+  ↓
+Changed File Policy
+  ↓
+Reviewer Agent
+```
+
+## 14. Retry, Resume, and Failure Handling
+
+- [ ] `[092]` define retryable, non-retryable, and fatal errors
+- [ ] `[093]` implement structured output repair retry
+- [ ] `[094]` implement implementation retry with validation feedback
+- [ ] `[095]` enforce maximum attempt limits
+- [ ] `[096]` rollback failed patches before another attempt
+- [ ] `[097]` assign a deterministic execution identifier to every step
+- [ ] `[098]` save step input and output hashes
+- [ ] `[099]` resume from the last valid checkpoint and prevent duplicate patch application
+
+Retry flow:
+
+```text
+Validation Failure
+  ↓
+Rollback Failed Patch
+  ↓
+Attach Validation Feedback
+  ↓
+Retry Agent
+  ↓
+Maximum Attempts Reached
+  ↓
+Fail Run or Escalate to Human
+```
+
+## 15. Orchestrator and Human Approval
+
+- [ ] `[100]` define the complete pipeline step sequence
+- [ ] `[101]` create the run and isolated workspace
+- [ ] `[102]` execute the Investigator Agent
+- [ ] `[103]` execute the Reproducer Agent and enforce the failing-test gate
+- [ ] `[104]` execute the Implementer Agent
+- [ ] `[105]` execute mechanical validation
+- [ ] `[106]` execute the Reviewer Agent
+- [ ] `[107]` display diff, tests, risks, retries, token usage, and cost
+- [ ] `[108]` support human approve and reject decisions
+- [ ] `[109]` save the final diff and approval decision
+- [ ] `[110]` complete, fail, rollback, or clean up the run
+
+Pipeline:
+
+```text
+User Task
+  ↓
+Investigator
+  ↓
+Evidence Validation
+  ↓
+Reproducer
+  ↓
+Failing-Test Gate
+  ↓
+Implementer
+  ↓
+Mechanical Validation
+  ↓
+Reviewer
+  ↓
+Human Approval
+  ↓
+Final Diff
+```
+
+## 16. Billing Demo Fixture
+
+- [ ] `[111]` create a minimal billing fixture project
+- [ ] `[112]` implement payment webhook processing
+- [ ] `[113]` add the duplicate webhook payment bug
+- [ ] `[114]` add a minimal test environment
+- [ ] `[115]` add test, typecheck, lint, and build scripts
+- [ ] `[116]` verify that the duplicate payment bug exists before AgentFix runs
+- [ ] `[117]` document the expected idempotent fix behavior
 
 Fixture:
 
@@ -340,74 +392,156 @@ Fixture:
 fixtures/
   billing-duplicate-payment/
     src/
+      payment-service.ts
+      webhook-handler.ts
     tests/
+      payment-webhook.test.ts
     package.json
     tsconfig.json
 ```
 
-## 22. Evaluation Cases
+Expected behavior:
 
-- [ ] `[207]` add successful bug fix case
-- [ ] `[208]` add invalid agent schema case
-- [ ] `[209]` add hallucinated file case
-- [ ] `[210]` add reproduction test already passes case
-- [ ] `[211]` add implementation typecheck failure case
-- [ ] `[212]` add forbidden file modification case
-- [ ] `[213]` add command timeout case
-- [ ] `[214]` add retry success case
-- [ ] `[215]` add human rejection case
-- [ ] `[216]` generate an evaluation summary
+```text
+Two webhook deliveries with the same provider event ID
+must create exactly one payment.
+```
 
-## 23. Docker Environment
+## 17. Evaluation and Self-Improvement
 
-- [ ] `[217]` create a Node.js 24 Dockerfile
-- [ ] `[218]` install Git and ripgrep
-- [ ] `[219]` run the container as a non-root user
-- [ ] `[220]` mount the run workspace
-- [ ] `[221]` exclude OpenAI and GitHub secrets from the sandbox
-- [ ] `[222]` support test, typecheck, lint, and build execution
-- [ ] `[223]` add container resource limits
-- [ ] `[224]` add Docker environment smoke test
-- [ ] `[225]` update Docker scripts
+- [ ] `[118]` define the evaluation case and result formats
+- [ ] `[119]` add a successful duplicate-payment fix case
+- [ ] `[120]` add a hallucinated file reference case
+- [ ] `[121]` add a reproduction test that already passes case
+- [ ] `[122]` add typecheck failure and forbidden file modification cases
+- [ ] `[123]` add a retry-then-success case
+- [ ] `[124]` save an evaluation baseline with prompt versions
+- [ ] `[125]` compare current results with the baseline and detect regressions
+- [ ] `[126]` document one initially missed failure, update the prompt or validator, and rerun evaluations
 
-## 24. Project Cleanup
+Self-improvement loop:
 
-- [ ] `[226]` rename package metadata to AgentFix
-- [ ] `[227]` replace old billing repository links
-- [ ] `[228]` replace the old package description
-- [ ] `[229]` update `.gitignore` for `.runs`
-- [ ] `[230]` remove unused files and configuration
-- [ ] `[231]` fix Docker helper scripts
-- [ ] `[232]` verify npm scripts
-- [ ] `[233]` verify build output
-- [ ] `[234]` run formatting and linting
+```text
+Trace Failure
+  ↓
+Classify Failure Reason
+  ↓
+Update Prompt or Validation Rule
+  ↓
+Create New Prompt Version
+  ↓
+Run Evaluation Suite
+  ↓
+Compare with Baseline
+  ↓
+Accept or Reject Change
+```
 
-## 25. Documentation
+Required missed-failure story:
 
-- [ ] `[235]` update README architecture section
-- [ ] `[236]` document CLI usage
-- [ ] `[237]` document environment variables
-- [ ] `[238]` document the pipeline steps
-- [ ] `[239]` document validation rules
-- [ ] `[240]` document the billing fixture
-- [ ] `[241]` document the failure demonstration
-- [ ] `[242]` add an example trace
-- [ ] `[243]` add an example final diff
+```text
+Initial behavior:
+The pipeline accepted a reproduction test that passed before the fix.
 
-## 26. Final Verification
+Change:
+Added a mandatory pre-fix failing-test gate.
 
-- [ ] `[244]` install dependencies from a clean state
-- [ ] `[245]` run typecheck
-- [ ] `[246]` run lint
-- [ ] `[247]` run build
-- [ ] `[248]` run unit tests
-- [ ] `[249]` run integration tests
-- [ ] `[250]` run evaluation cases
-- [ ] `[251]` run the complete live OpenAI workflow
-- [ ] `[252]` verify the successful final diff
-- [ ] `[253]` verify one retry scenario
-- [ ] `[254]` verify one blocked invalid change
-- [ ] `[255]` verify trace completeness
-- [ ] `[256]` verify token and duration metrics
-- [ ] `[257]` verify workspace cleanup
-- [ ] `[258]` prepare the final demonstration run
+Regression:
+Added an evaluation case that fails if the reproducer creates
+a test that already passes.
+```
+
+## 18. Monitoring Module
+
+- [ ] `[127]` aggregate metrics from completed traces
+- [ ] `[128]` calculate run success and failure rates
+- [ ] `[129]` calculate first-attempt validation pass rate
+- [ ] `[130]` calculate retry rate and average attempts per successful run
+- [ ] `[131]` calculate token usage and estimated cost per successful run
+- [ ] `[132]` calculate average, p50, and p95 execution latency
+- [ ] `[133]` calculate evaluation regression and validation rejection rates
+- [ ] `[134]` generate a CLI monitoring summary
+
+Primary degradation metric:
+
+```text
+firstAttemptValidationPassRate
+```
+
+Supporting metrics:
+
+```text
+runSuccessRate
+validationFailureRate
+averageRetriesPerSuccessfulRun
+tokenCostPerSuccessfulRun
+p50RunLatencyMs
+p95RunLatencyMs
+evaluationRegressionRate
+```
+
+## 19. Docker Environment
+
+- [ ] `[135]` create a Node.js 24 Dockerfile
+- [ ] `[136]` install Git and ripgrep
+- [ ] `[137]` install project and fixture dependencies
+- [ ] `[138]` run the container as a non-root user
+- [ ] `[139]` mount only the isolated run workspace
+- [ ] `[140]` exclude OpenAI, Git, and environment secrets from the sandbox
+- [ ] `[141]` execute test, typecheck, lint, and build inside the container
+- [ ] `[142]` add command timeout and container resource limits
+- [ ] `[143]` add a Docker environment smoke test
+
+Docker execution boundary:
+
+```text
+Agent
+  ↓
+Allowlisted Process Operation
+  ↓
+Docker Container
+  ↓
+Isolated Run Workspace
+```
+
+## 20. Documentation and Recording Preparation
+
+- [ ] `[144]` document the architecture and pipeline
+- [ ] `[145]` document why this agent structure was selected
+- [ ] `[146]` document rejected alternatives and tradeoffs
+- [ ] `[147]` document context boundaries and stale-context handling
+- [ ] `[148]` document mechanical validation and anti-hallucination rules
+- [ ] `[149]` document retry, rollback, resume, and idempotency behavior
+- [ ] `[150]` document the self-improvement and evaluation workflow
+- [ ] `[151]` document monitoring metrics and estimated costs
+- [ ] `[152]` document CLI and Docker usage
+- [ ] `[153]` add example trace, validation report, metrics report, and final diff
+- [ ] `[154]` prepare the successful run, failure run, missed-failure story, and 10–15 minute recording script
+
+Recording structure:
+
+```text
+1. Architecture and rejected alternatives
+2. Agent context boundaries and RunState
+3. Successful bug-fix execution
+4. Mechanical validation gates
+5. Hallucinated or invalid output rejection
+6. Retry after implementation failure
+7. Human approval
+8. Evaluation regression and prompt version
+9. Monitoring, latency, token usage, and cost
+10. Production limitations and next steps
+```
+
+## 21. Final Verification
+
+- [ ] `[155]` install dependencies from a clean state
+- [ ] `[156]` run project typecheck, lint, and build
+- [ ] `[157]` run critical validator and context-management tests
+- [ ] `[158]` run the complete pipeline integration test
+- [ ] `[159]` run all evaluation cases and compare them with the baseline
+- [ ] `[160]` run one complete live OpenAI workflow
+- [ ] `[161]` verify one implementation retry followed by success
+- [ ] `[162]` verify one hallucinated or forbidden change is blocked
+- [ ] `[163]` verify traces, context revisions, token usage, cost, latency, and monitoring metrics
+- [ ] `[164]` verify Docker execution and prepare the final demonstration run
