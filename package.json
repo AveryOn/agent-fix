@@ -19,7 +19,7 @@
     "verify": "./scripts/push-verify.sh",
     "prepare": "husky",
     "source-code:generate": "node scripts/generate-project-source.mjs",
-    "git:push": "./git-push.sh"
+    "git:push": "./scripts/git-push.sh"
   },
   "repository": {
     "type": "git",
