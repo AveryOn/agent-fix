@@ -2,11 +2,14 @@ node_modules/
 dist/
 coverage/
 
+.runs/
+.runs-test/
+
 .env
 .env.*
 !.env.example
-!.env.development.example
-!.env.production.example
+!.env.test
+
 
 *.log
 npm-debug.log*
