@@ -36,13 +36,13 @@ DOCKER_ENABLED
 
 ## 3. Logger and Trace Module
 
-- [ ] `[014]` implement structured logging with Pino
-- [ ] `[015]` add `runId`, `step`, `agent`, `attempt`, and `workspaceRevision` fields
-- [ ] `[016]` implement secret and prompt-data redaction
-- [ ] `[017]` define the trace event format
-- [ ] `[018]` implement JSONL trace writer
-- [ ] `[019]` save agent calls, tool calls, validation results, retries, and failures
-- [ ] `[020]` save prompt versions, token usage, estimated cost, and execution duration
+- [x] `[014]` implement structured logging with Pino
+- [x] `[015]` add `runId`, `step`, `agent`, `attempt`, and `workspaceRevision` fields
+- [x] `[016]` implement secret and prompt-data redaction
+- [x] `[017]` define the trace event format
+- [x] `[018]` implement JSONL trace writer
+- [x] `[019]` save agent calls, tool calls, validation results, retries, and failures
+- [x] `[020]` save prompt versions, token usage, estimated cost, and execution duration
 
 Trace event:
 
