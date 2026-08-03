@@ -12,6 +12,7 @@ describe('parseEnvironment', () => {
       OPENAI_MODEL: 'test-model',
       RUNS_ROOT: '.runs-test',
       MAX_AGENT_ATTEMPTS: '2',
+      OPENAI_TIMEOUT_MS: '60000',
       COMMAND_TIMEOUT_MS: '5000',
       CONTEXT_TOKEN_BUDGET: '4000',
       LOG_LEVEL: 'silent',
@@ -25,6 +26,7 @@ describe('parseEnvironment', () => {
       OPENAI_MODEL: 'test-model',
       RUNS_ROOT: '.runs-test',
       MAX_AGENT_ATTEMPTS: 2,
+      OPENAI_TIMEOUT_MS: 60_000,
       COMMAND_TIMEOUT_MS: 5000,
       CONTEXT_TOKEN_BUDGET: 4000,
       LOG_LEVEL: 'silent',
@@ -40,6 +42,7 @@ describe('parseEnvironment', () => {
       OPENAI_MODEL: 'test-model'
     })
 
+    expect(environment.OPENAI_TIMEOUT_MS).toBe(60_000)
     expect(environment.RUNS_ROOT).toBe('.runs')
     expect(environment.MAX_AGENT_ATTEMPTS).toBe(3)
     expect(environment.COMMAND_TIMEOUT_MS).toBe(120_000)

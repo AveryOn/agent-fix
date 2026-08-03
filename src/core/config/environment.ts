@@ -9,6 +9,7 @@ export const environmentSchema = z.object({
 
   OPENAI_API_KEY: z.string().min(1),
   OPENAI_MODEL: z.string().min(1),
+  OPENAI_TIMEOUT_MS: z.coerce.number().int().positive().default(60_000),
 
   RUNS_ROOT: z.string().min(1).default('.runs'),
 
