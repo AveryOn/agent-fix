@@ -17,7 +17,7 @@ const envSchema = z.object({
   LOG_PRETTY: z
     .enum(['true', 'false'])
     .default('false')
-    .transform((value) => value === 'true'),
+    .transform((value) => value === 'true')
 })
 
 const result = envSchema.safeParse(process.env)
