@@ -6,7 +6,7 @@
 // const cliModule = Module.resolve<CliPort>(CLI_PORT)
 
 function shutdown(signal: NodeJS.Signals): void {
-  console.log(`[multi-agent-system] Received ${signal}`)
+  console.log(`[agent-fix] Received ${signal}`)
 
   // cliModule.close((error) => {
   //   if (error !== undefined) {

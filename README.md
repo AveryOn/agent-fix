@@ -1,6 +1,6 @@
-# agent-fix
+# AgentFix
 
-agent-fix is a multi-agent engineering platform that turns bug reports into verified code changes.
+AgentFix is a multi-agent engineering platform that turns bug reports into verified code changes.
 
 The system uses a set of simple specialized agents for repository analysis, issue reproduction, patch creation, and verification. Each agent works with a limited context and returns structured output.
 
