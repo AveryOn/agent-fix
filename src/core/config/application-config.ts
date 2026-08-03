@@ -1,4 +1,4 @@
-import type { Environment } from '~/env'
+import type { Environment } from '~/core/config/environment'
 
 export class AppConfig {
   readonly environment: Environment
