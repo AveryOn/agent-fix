@@ -1,6 +1,9 @@
 import { CompositionRoot } from '~/composition-root'
 
-const Root = new CompositionRoot()
+const root = new CompositionRoot()
+const bootstrapLogger = root.logger.child({
+  step: 'bootstrap'
+})
 
 let shutdownPromise: Promise<void> | undefined
 
@@ -12,16 +15,24 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   removeSignalHandlers()
 
   shutdownPromise = (async () => {
-    console.log(`[AgentFix] Received ${signal}`)
+    const shutdownLogger = root.logger.child({
+      step: 'shutdown'
+    })
+
+    shutdownLogger.info(`Received ${signal}`)
 
     try {
-      await Root.app.stop()
+      await root.app.stop()
 
-      console.log('[AgentFix] Application stopped')
+      shutdownLogger.info('Application stopped')
     } catch (error) {
-      console.error('[AgentFix] Failed to stop application', error)
+      shutdownLogger.error('Failed to stop application', {
+        error
+      })
 
       process.exitCode = 1
+    } finally {
+      await flushObservability()
     }
   })()
 
@@ -41,29 +52,47 @@ function removeSignalHandlers(): void {
   process.off('SIGTERM', handleSigterm)
 }
 
+async function flushObservability(): Promise<void> {
+  try {
+    await root.traceRecorder.flush()
+  } catch (error) {
+    root.logger.error('Failed to flush trace events', {
+      error
+    })
+
+    process.exitCode = 1
+  }
+
+  root.logger.flush()
+}
+
 async function bootstrap(): Promise<void> {
   process.once('SIGINT', handleSigint)
   process.once('SIGTERM', handleSigterm)
 
   try {
-    await Root.app.start()
+    await root.app.start()
 
-    console.log('[AgentFix] Application started')
+    bootstrapLogger.info('Application started')
+    root.logger.flush()
   } catch (error) {
     removeSignalHandlers()
 
-    console.error('[AgentFix] Failed to start application', error)
+    bootstrapLogger.error('Failed to start application', {
+      error
+    })
 
     try {
-      await Root.app.stop()
+      await root.app.stop()
     } catch (shutdownError) {
-      console.error(
-        '[AgentFix] Failed to clean up after startup error',
-        shutdownError
-      )
+      bootstrapLogger.error('Failed to clean up after startup error', {
+        error: shutdownError
+      })
     }
 
     process.exitCode = 1
+
+    await flushObservability()
   }
 }
 

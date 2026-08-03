@@ -1,9 +1,13 @@
 import type { AppConfig } from '~/core/config'
+import type { Logger } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
+import type { TraceRecorder } from '~/core/trace'
 
 export interface ApplicationDependencies {
   readonly config: AppConfig
   readonly modelProvider: ModelProvider
+  readonly logger: Logger
+  readonly traceRecorder: TraceRecorder
 }
 
 export interface Application {
