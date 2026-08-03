@@ -14,10 +14,10 @@
 - [x] `[007]` add typed application configuration
 - [x] `[008]` add OpenAI, runs, retry, timeout, logging, and Docker configuration
 - [x] `[009]` validate environment variables with Zod
-- [ ] `[010]` define `ModelProvider` contract
-- [ ] `[011]` implement OpenAI structured outputs and tool calls
-- [ ] `[012]` collect token usage and request duration
-- [ ] `[013]` map API errors and timeouts to application errors
+- [x] `[010]` define `ModelProvider` contract
+- [x] `[011]` implement OpenAI structured outputs and tool calls
+- [x] `[012]` collect token usage and request duration
+- [x] `[013]` map API errors and timeouts to application errors
 
 Required environment variables:
 
