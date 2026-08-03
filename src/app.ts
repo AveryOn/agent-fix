@@ -1,3 +1,10 @@
-export function createApp() {
-  // implements create app function
+export interface ApplicationDependencies {}
+
+export interface Application {}
+
+export function createApp(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _dependencies: ApplicationDependencies
+): Application {
+  return {}
 }

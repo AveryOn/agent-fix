@@ -2,10 +2,10 @@
 
 ## 1. Project Foundation
 
-- [x] ~~`[001]` rename package metadata and project references to `AgentFix`~~
-- [x] ~~`[002]` replace the custom DI module framework with a simple composition root~~
-- [x] ~~`[003]` remove unused DI container, module metadata, and lifecycle code~~
-- [ ] `[004]` wire application dependencies through `createApp`
+- [x] `[001]` rename package metadata and project references to `AgentFix`
+- [x] `[002]` replace the custom DI module framework with a simple composition root
+- [x] `[003]` remove unused DI container, module metadata, and lifecycle code
+- [x] `[004]` wire application dependencies through `createApp`
 - [ ] `[005]` implement application start and graceful shutdown
 - [ ] `[006]` verify that the application starts with all required dependencies
 

@@ -1,11 +1,15 @@
+import type { Application, ApplicationDependencies } from '~/app'
+
 import { createApp } from '~/app'
 
 export interface CompositionRoot {
-  app: ReturnType<typeof createApp>
+  app: Application
 }
 
 export function createCompositionRoot(): CompositionRoot {
-  const app = createApp()
+  const dependencies: ApplicationDependencies = {}
+
+  const app = createApp(dependencies)
 
   return {
     app
