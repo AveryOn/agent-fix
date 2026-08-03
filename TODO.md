@@ -1,6 +1,6 @@
 # TODO List
 
-## 1. Project Foundation
+## 1. ~~Project Foundation~~
 
 - [x] `[001]` rename package metadata and project references to `AgentFix`
 - [x] `[002]` replace the custom DI module framework with a simple composition root
@@ -9,7 +9,7 @@
 - [x] `[005]` implement application start and graceful shutdown
 - [x] `[006]` verify that the application starts with all required dependencies
 
-## 2. Config and Model Provider
+## 2.~~ Config and Model Provider~~
 
 - [x] `[007]` add typed application configuration
 - [x] `[008]` add OpenAI, runs, retry, timeout, logging, and Docker configuration
@@ -34,7 +34,7 @@ CONTEXT_TOKEN_BUDGET
 DOCKER_ENABLED
 ```
 
-## 3. Logger and Trace Module
+## 3. ~~Logger and Trace Module~~
 
 - [x] `[014]` implement structured logging with Pino
 - [x] `[015]` add `runId`, `step`, `agent`, `attempt`, and `workspaceRevision` fields
