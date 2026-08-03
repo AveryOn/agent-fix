@@ -1,6 +1,7 @@
 import { CompositionRoot } from '~/composition-root'
 
 const root = new CompositionRoot()
+
 const bootstrapLogger = root.logger.child({
   step: 'bootstrap'
 })
@@ -23,7 +24,6 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
 
     try {
       await root.app.stop()
-
       shutdownLogger.info('Application stopped')
     } catch (error) {
       shutdownLogger.error('Failed to stop application', {
@@ -74,23 +74,33 @@ async function bootstrap(): Promise<void> {
     await root.app.start()
 
     bootstrapLogger.info('Application started')
-    root.logger.flush()
-  } catch (error) {
-    removeSignalHandlers()
 
-    bootstrapLogger.error('Failed to start application', {
+    process.exitCode = await root.app.execute(process.argv.slice(2))
+  } catch (error) {
+    bootstrapLogger.error('Application execution failed', {
       error
     })
 
-    try {
-      await root.app.stop()
-    } catch (shutdownError) {
-      bootstrapLogger.error('Failed to clean up after startup error', {
-        error: shutdownError
-      })
+    process.exitCode = 1
+  } finally {
+    removeSignalHandlers()
+
+    if (shutdownPromise !== undefined) {
+      await shutdownPromise
+      // eslint-disable-next-line no-unsafe-finally
+      return
     }
 
-    process.exitCode = 1
+    try {
+      await root.app.stop()
+      bootstrapLogger.info('Application stopped')
+    } catch (error) {
+      bootstrapLogger.error('Failed to stop application', {
+        error
+      })
+
+      process.exitCode = 1
+    }
 
     await flushObservability()
   }
