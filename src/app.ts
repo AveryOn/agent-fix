@@ -1,4 +1,8 @@
-export type ApplicationDependencies = Record<string, never>
+import type { AppConfig } from '~/core/config'
+
+export interface ApplicationDependencies {
+  config: AppConfig
+}
 
 export interface Application {
   start(): Promise<void>

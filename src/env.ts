@@ -7,9 +7,7 @@ dotenv.config({
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']),
-  PORT: z.coerce.number().int().positive().max(65535),
 
-  DATABASE_URL: z.url(),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info'),

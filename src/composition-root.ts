@@ -1,17 +1,17 @@
 import type { Application, ApplicationDependencies } from '~/app'
 
 import { createApp } from '~/app'
+import { AppConfig } from '~/core/config'
+import { env } from '~/env'
 
-export interface CompositionRoot {
-  app: Application
-}
+export class CompositionRoot {
+  readonly app: Application
+  readonly dependencies: ApplicationDependencies
 
-export function createCompositionRoot(): CompositionRoot {
-  const dependencies: ApplicationDependencies = {}
-
-  const app = createApp(dependencies)
-
-  return {
-    app
+  constructor() {
+    this.dependencies = {
+      config: new AppConfig(env)
+    }
+    this.app = createApp(this.dependencies)
   }
 }
