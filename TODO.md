@@ -7,7 +7,7 @@
 - [x] `[003]` remove unused DI container, module metadata, and lifecycle code
 - [x] `[004]` wire application dependencies through `createApp`
 - [x] `[005]` implement application start and graceful shutdown
-- [ ] `[006]` verify that the application starts with all required dependencies
+- [x] `[006]` verify that the application starts with all required dependencies
 
 ## 2. Config and Model Provider
 
