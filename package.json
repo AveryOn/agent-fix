@@ -1,6 +1,6 @@
 {
   "name": "agent-fix",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "**Agent Fix** - Multi-agent system that turns bug reports into verified code changes. Agents investigate the repository, reproduce issues, generate patches, run checks, handle failures, and prepare draft pull requests with human approval",
   "main": "src/main.js",
   "type": "module",
