@@ -9,7 +9,7 @@
 - [x] `[005]` implement application start and graceful shutdown
 - [x] `[006]` verify that the application starts with all required dependencies
 
-## 2.~~ Config and Model Provider~~
+## 2. ~~Config and Model Provider~~
 
 - [x] `[007]` add typed application configuration
 - [x] `[008]` add OpenAI, runs, retry, timeout, logging, and Docker configuration
