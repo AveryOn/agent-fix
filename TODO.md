@@ -11,7 +11,7 @@
 
 ## 2. Config and Model Provider
 
-- [ ] `[007]` add typed application configuration
+- [x] `[007]` add typed application configuration
 - [ ] `[008]` add OpenAI, runs, retry, timeout, logging, and Docker configuration
 - [ ] `[009]` validate environment variables with Zod
 - [ ] `[010]` define `ModelProvider` contract
