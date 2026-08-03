@@ -1,3 +1,4 @@
+import type { Cli } from '~/core/cli'
 import type { AppConfig } from '~/core/config'
 import type { Logger } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
@@ -8,18 +9,19 @@ export interface ApplicationDependencies {
   readonly modelProvider: ModelProvider
   readonly logger: Logger
   readonly traceRecorder: TraceRecorder
+  readonly cli: Cli
 }
 
 export interface Application {
   start(): Promise<void>
+  execute(argv: readonly string[]): Promise<number>
   stop(): Promise<void>
 }
 
 type ApplicationStatus = 'created' | 'started' | 'stopped'
 
 export function createApp(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _dependencies: ApplicationDependencies
+  dependencies: ApplicationDependencies
 ): Application {
   let status: ApplicationStatus = 'created'
 
@@ -34,6 +36,16 @@ export function createApp(
       }
 
       status = 'started'
+    },
+
+    execute(argv: readonly string[]): Promise<number> {
+      if (status !== 'started') {
+        throw new Error(
+          'Application must be started before command execution'
+        )
+      }
+
+      return dependencies.cli.execute(argv)
     },
 
     async stop(): Promise<void> {

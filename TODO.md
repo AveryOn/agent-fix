@@ -63,15 +63,15 @@ interface TraceEvent {
 }
 ```
 
-## 4. CLI and Run Module
+## 4. ~~CLI and Run Module~~
 
-- [ ] `[021]` implement the `run` CLI command
-- [ ] `[022]` accept repository path and bug description
-- [ ] `[023]` validate CLI arguments and target repository
-- [ ] `[024]` generate a unique run identifier and run directory
-- [ ] `[025]` define run statuses and save `state.json` after every step
-- [ ] `[026]` display pipeline progress and validation results
-- [ ] `[027]` implement the human approval prompt
+- [x] `[021]` implement the `run` CLI command
+- [x] `[022]` accept repository path and bug description
+- [x] `[023]` validate CLI arguments and target repository
+- [x] `[024]` generate a unique run identifier and run directory
+- [x] `[025]` define run statuses and save `state.json` after every step
+- [x] `[026]` display pipeline progress and validation results
+- [x] `[027]` implement the human approval prompt
 
 Target command:
 

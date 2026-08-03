@@ -6,6 +6,9 @@ describe('application bootstrap', () => {
     const { app } = new CompositionRoot()
 
     await expect(app.start()).resolves.toBeUndefined()
+
+    await expect(app.execute(['--help'])).resolves.toBe(0)
+
     await expect(app.stop()).resolves.toBeUndefined()
   })
 })
