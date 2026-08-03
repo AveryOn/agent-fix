@@ -22,7 +22,6 @@ export function createApp(
       if (status === 'stopped') {
         throw new Error('Application cannot be started after shutdown')
       }
-
       status = 'started'
     },
 
