@@ -1,6 +1,6 @@
-# multi-agent-system
+# agent-fix
 
-multi-agent-system is a multi-agent engineering platform that turns bug reports into verified code changes.
+agent-fix is a multi-agent engineering platform that turns bug reports into verified code changes.
 
 The system uses a set of simple specialized agents for repository analysis, issue reproduction, patch creation, and verification. Each agent works with a limited context and returns structured output.
 
@@ -20,14 +20,14 @@ A human must approve changes before a draft pull request is created.
 
 ## Core properties
 
-* Simple multi-agent coordination
-* Structured outputs from agents
-* Isolated Git workspace
-* Automated validation
-* Retry on failure
-* Human approval step
-* Basic execution logging
-* Regression safety checks
+- Simple multi-agent coordination
+- Structured outputs from agents
+- Isolated Git workspace
+- Automated validation
+- Retry on failure
+- Human approval step
+- Basic execution logging
+- Regression safety checks
 
 ## Technology
 

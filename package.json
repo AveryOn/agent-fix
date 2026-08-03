@@ -1,7 +1,7 @@
 {
-  "name": "multi-agent-system",
+  "name": "agent-fix",
   "version": "1.0.0",
-  "description": "**Multi Agent System** — A billing and payments backend system covering products, plans, subscriptions, invoices, payments, webhook processing, provider abstraction, Stripe/Paddle-like adapters, idempotency, transaction logs, payment state machines, and billing domain modeling.",
+  "description": "**Agent Fix** — A billing and payments backend system covering products, plans, subscriptions, invoices, payments, webhook processing, provider abstraction, Stripe/Paddle-like adapters, idempotency, transaction logs, payment state machines, and billing domain modeling.",
   "main": "src/main.js",
   "type": "module",
   "scripts": {
@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AveryOn/payex-billing-system.git"
+    "url": "git+https://github.com/AveryOn/agent-fix.git"
   },
   "private": true,
   "engines": {
@@ -33,9 +33,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/AveryOn/payex-billing-system/issues"
+    "url": "https://github.com/AveryOn/agent-fix/issues"
   },
-  "homepage": "https://github.com/AveryOn/payex-billing-system#readme",
+  "homepage": "https://github.com/AveryOn/agent-fix#readme",
   "dependencies": {
     "dotenv": "^17.4.2",
     "reflect-metadata": "^0.2.2",
