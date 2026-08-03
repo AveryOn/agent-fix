@@ -1,6 +1,6 @@
-import { createCompositionRoot } from '~/composition-root'
+import { CompositionRoot } from '~/composition-root'
 
-const { app } = createCompositionRoot()
+const Root = new CompositionRoot()
 
 let shutdownPromise: Promise<void> | undefined
 
@@ -15,7 +15,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
     console.log(`[AgentFix] Received ${signal}`)
 
     try {
-      await app.stop()
+      await Root.app.stop()
 
       console.log('[AgentFix] Application stopped')
     } catch (error) {
@@ -46,7 +46,7 @@ async function bootstrap(): Promise<void> {
   process.once('SIGTERM', handleSigterm)
 
   try {
-    await app.start()
+    await Root.app.start()
 
     console.log('[AgentFix] Application started')
   } catch (error) {
@@ -55,7 +55,7 @@ async function bootstrap(): Promise<void> {
     console.error('[AgentFix] Failed to start application', error)
 
     try {
-      await app.stop()
+      await Root.app.stop()
     } catch (shutdownError) {
       console.error(
         '[AgentFix] Failed to clean up after startup error',

@@ -1,4 +1,10 @@
-export type ApplicationDependencies = Record<string, never>
+import type { AppConfig } from '~/core/config'
+import type { ModelProvider } from '~/core/model'
+
+export interface ApplicationDependencies {
+  readonly config: AppConfig
+  readonly modelProvider: ModelProvider
+}
 
 export interface Application {
   start(): Promise<void>
@@ -8,10 +14,10 @@ export interface Application {
 type ApplicationStatus = 'created' | 'started' | 'stopped'
 
 export function createApp(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _dependencies: ApplicationDependencies
 ): Application {
   let status: ApplicationStatus = 'created'
-  void _dependencies
 
   return {
     async start(): Promise<void> {
@@ -22,6 +28,7 @@ export function createApp(
       if (status === 'stopped') {
         throw new Error('Application cannot be started after shutdown')
       }
+
       status = 'started'
     },
 
