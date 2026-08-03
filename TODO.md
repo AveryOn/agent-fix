@@ -63,7 +63,7 @@ interface TraceEvent {
 }
 ```
 
-## 4. CLI and Run Module
+## 4. ~~CLI and Run Module~~
 
 - [x] `[021]` implement the `run` CLI command
 - [x] `[022]` accept repository path and bug description
