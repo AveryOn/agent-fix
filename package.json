@@ -1,7 +1,7 @@
 {
   "name": "agent-fix",
   "version": "1.0.2",
-  "description": "**Agent Fix** — A billing and payments backend system covering products, plans, subscriptions, invoices, payments, webhook processing, provider abstraction, Stripe/Paddle-like adapters, idempotency, transaction logs, payment state machines, and billing domain modeling.",
+  "description": "**Agent Fix** - Multi-agent system that turns bug reports into verified code changes. Agents investigate the repository, reproduce issues, generate patches, run checks, handle failures, and prepare draft pull requests with human approval",
   "main": "src/main.js",
   "type": "module",
   "scripts": {
