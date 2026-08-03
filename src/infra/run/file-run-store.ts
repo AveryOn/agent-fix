@@ -29,6 +29,10 @@ export class FileRunStore implements RunStore {
   async create(input: CreateRunStoreInput): Promise<void> {
     const runDirectory = this.getRunDirectory(input.state.runId)
 
+    await mkdir(this.runsRoot, {
+      recursive: true
+    })
+
     await mkdir(runDirectory, {
       recursive: false
     })
