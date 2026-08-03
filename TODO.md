@@ -1,6 +1,7 @@
 # TODO List
 
 1. DI Module:
+   - ~~to implement base logic~~
    - add `imports`, `providers`, `exports` and normal `bootstrap`
    - smoke tests and logic test
 
