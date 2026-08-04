@@ -16,6 +16,7 @@ import type { TraceRecorder } from '~/core/trace'
 import { z } from 'zod'
 import { FinalDiffAnalyzer } from '~/application/reviewer/final-diff-analyzer'
 import { ReviewResultValidator } from '~/application/reviewer/review-result-validator'
+import { AgentOutputSchemaValidator } from '~/application/validation'
 import { AgentRole } from '~/core/context'
 import {
   reviewDecisionSchema,
@@ -35,7 +36,8 @@ export class ModelReviewerAgent implements ReviewerAgent {
     private readonly traceRecorder: TraceRecorder,
     private readonly logger: Logger,
     private readonly diffAnalyzer = new FinalDiffAnalyzer(),
-    private readonly resultValidator = new ReviewResultValidator()
+    private readonly resultValidator = new ReviewResultValidator(),
+    private readonly agentOutputValidator = new AgentOutputSchemaValidator()
   ) {}
 
   async execute(input: ReviewInput): Promise<ReviewResult> {
@@ -129,7 +131,9 @@ export class ModelReviewerAgent implements ReviewerAgent {
         )
       }
 
-      const decision = this.parseDecision(modelResult.output)
+      const decision = this.agentOutputValidator.validateReview(
+        modelResult.output
+      )
 
       const validatedDecision = this.resultValidator.validate(
         decision,
@@ -212,24 +216,6 @@ export class ModelReviewerAgent implements ReviewerAgent {
         }
       )
     }
-  }
-
-  private parseDecision(value: unknown): ReviewDecision {
-    const result = reviewDecisionSchema.safeParse(value)
-
-    if (!result.success) {
-      throw new ReviewerError(
-        'Review output failed schema validation: ' +
-          z.prettifyError(result.error),
-        ReviewerErrorCode.invalid_output,
-        {
-          retryable: true,
-          cause: result.error
-        }
-      )
-    }
-
-    return result.data
   }
 
   private async saveArtifact(
