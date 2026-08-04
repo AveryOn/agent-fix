@@ -6,6 +6,7 @@ import type { ModelProvider } from '~/core/model'
 import { createApp } from '~/app'
 import { RunCommandHandler, RunService } from '~/application/run'
 import { AppConfig } from '~/core/config'
+import { AgentContextManager } from '~/core/context'
 import { TraceRecorder } from '~/core/trace'
 import { env } from '~/env'
 import {
@@ -26,9 +27,14 @@ export class CompositionRoot {
   readonly logger: Logger
   readonly modelProvider: ModelProvider
   readonly traceRecorder: TraceRecorder
+  readonly contextManager: AgentContextManager
 
   constructor() {
     this.config = new AppConfig(env)
+
+    this.contextManager = new AgentContextManager({
+      tokenBudget: this.config.environment.CONTEXT_TOKEN_BUDGET
+    })
 
     this.logger = createPinoLogger({
       level: this.config.environment.LOG_LEVEL as LogLevel,
@@ -74,7 +80,8 @@ export class CompositionRoot {
       config: this.config,
       logger: this.logger,
       modelProvider: this.modelProvider,
-      traceRecorder: this.traceRecorder
+      traceRecorder: this.traceRecorder,
+      contextManager: this.contextManager
     })
   }
 }
