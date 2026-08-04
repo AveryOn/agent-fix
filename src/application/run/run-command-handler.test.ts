@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { CliOutput } from '~/core/cli'
 import type { HumanApprovalPrompt, HumanApprovalRequest } from '~/core/run'
 
-import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises'
+import { execFile } from 'node:child_process'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -9,14 +12,14 @@ import { RunCommandHandler, RunService } from '~/application/run'
 import { LogLevel } from '~/core/logging'
 import { HumanApprovalDecision, RunStatus } from '~/core/run'
 import { TraceRecorder } from '~/core/trace'
-import { FileSystemTargetRepositoryValidator } from '~/infra/cli'
+import { GitTargetRepositoryValidator } from '~/infra/cli'
 import { createPinoLogger } from '~/infra/logging'
 import { FileRunStore } from '~/infra/run'
 import { JsonlTraceWriter } from '~/infra/trace'
+import { GitWorkspaceManager } from '~/infra/workspace'
 
 class ApprovedPrompt implements HumanApprovalPrompt {
   requestApproval(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _request: HumanApprovalRequest
   ): Promise<HumanApprovalDecision> {
     return Promise.resolve(HumanApprovalDecision.approved)
@@ -47,9 +50,32 @@ describe('RunCommandHandler', () => {
 
       const runsRoot = path.join(temporaryRoot, 'runs')
 
-      await mkdir(path.join(repositoryPath, '.git'), {
+      await mkdir(repositoryPath, {
         recursive: true
       })
+
+      await runGit(['init'], repositoryPath)
+
+      await writeFile(
+        path.join(repositoryPath, 'README.md'),
+        '# fixture\n',
+        'utf8'
+      )
+
+      await runGit(['add', '.'], repositoryPath)
+
+      await runGit(
+        [
+          '-c',
+          'user.name=AgentFix Test',
+          '-c',
+          'user.email=agent-fix@example.test',
+          'commit',
+          '-m',
+          'initial'
+        ],
+        repositoryPath
+      )
 
       const runStore = new FileRunStore(runsRoot)
 
@@ -68,11 +94,14 @@ describe('RunCommandHandler', () => {
 
       const output = new MemoryOutput()
 
+      const workspaceManager = new GitWorkspaceManager({
+        runsRoot
+      })
+
       const handler = new RunCommandHandler(
         runService,
-        new FileSystemTargetRepositoryValidator(
-          () => new Date('2026-08-03T19:00:00.000Z')
-        ),
+        new GitTargetRepositoryValidator(),
+        workspaceManager,
         new ApprovedPrompt(),
         output,
         createPinoLogger({
@@ -111,10 +140,16 @@ describe('RunCommandHandler', () => {
         runId: 'run-001',
         status: RunStatus.approved,
         currentStep: null,
+        repositoryRoot: repositoryPath,
+        workspacePath: path.join(runsRoot, 'run-001', 'workspace'),
         approval: {
           decision: HumanApprovalDecision.approved
         }
       })
+
+      expect(state.baseCommit).toMatch(/^[a-f0-9]{40}$/)
+
+      expect(state.workspaceRevision).toMatch(/^sha256:/)
 
       expect(validation).toMatchObject({
         passed: true,
@@ -122,6 +157,8 @@ describe('RunCommandHandler', () => {
       })
 
       expect(events).toContain('"type":"validation.result"')
+
+      expect(events).toContain('"step":"prepare_workspace"')
     } finally {
       await rm(temporaryRoot, {
         recursive: true,
@@ -130,3 +167,23 @@ describe('RunCommandHandler', () => {
     }
   })
 })
+
+function runGit(args: readonly string[], cwd: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    execFile(
+      'git',
+      [...args],
+      {
+        cwd
+      },
+      (error) => {
+        if (error !== null) {
+          reject(error)
+          return
+        }
+
+        resolve()
+      }
+    )
+  })
+}

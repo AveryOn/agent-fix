@@ -22,11 +22,11 @@ export class RunCommandHandler {
   constructor(
     private readonly runService: RunService,
     private readonly repositoryValidator: TargetRepositoryValidator,
+    private readonly workspaceManager: WorkspaceManager,
     private readonly approvalPrompt: HumanApprovalPrompt,
     private readonly output: CliOutput,
     private readonly logger: Logger,
-    private readonly traceRecorder: TraceRecorder,
-    private readonly workspaceManager: WorkspaceManager
+    private readonly traceRecorder: TraceRecorder
   ) {}
 
   async execute(input: RunCommandInput): Promise<number> {
