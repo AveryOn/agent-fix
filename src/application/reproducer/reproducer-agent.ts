@@ -1,6 +1,9 @@
 import type { Logger } from '~/core/logging'
 import type { ModelProvider, ModelResult } from '~/core/model'
-import type { ProcessRunnerFactory } from '~/core/process'
+import type {
+  ProcessOperationResult,
+  ProcessRunnerFactory
+} from '~/core/process'
 import type {
   PromptRegistry,
   PromptVersionIdentifier
@@ -361,11 +364,9 @@ export class ModelReproducerAgent implements ReproducerAgent {
   private async runTests(
     input: ReproductionInput,
     promptVersion: PromptVersionIdentifier,
-    runTests: () => ReturnType<
-      ReturnType<ProcessRunnerFactory['create']>['runTests']
-    >,
+    runTests: () => Promise<ProcessOperationResult>,
     workspaceRevision: string
-  ) {
+  ): Promise<ProcessOperationResult> {
     await this.traceRecorder.record({
       runId: input.context.context.runId,
       step: reproducerStep,
