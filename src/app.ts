@@ -10,6 +10,7 @@ import type { PromptRegistry } from '~/core/prompt'
 import type { ReproducerAgent } from '~/core/reproduction'
 import type { ReviewerAgent } from '~/core/review'
 import type { TraceRecorder } from '~/core/trace'
+import type { ValidationService } from '~/core/validation'
 import type {
   RepositoryToolsFactory,
   WorkspaceManager
@@ -30,6 +31,7 @@ export interface ApplicationDependencies {
   readonly reproducerAgent: ReproducerAgent
   readonly implementerAgent: ImplementerAgent
   readonly reviewerAgent: ReviewerAgent
+  readonly validationService: ValidationService
 }
 
 export interface Application {

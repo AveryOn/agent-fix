@@ -8,6 +8,7 @@ import type { ProcessRunnerFactory } from '~/core/process'
 import type { PromptRegistry } from '~/core/prompt'
 import type { ReproducerAgent } from '~/core/reproduction'
 import type { ReviewerAgent } from '~/core/review'
+import type { ValidationService } from '~/core/validation'
 import type {
   RepositoryToolsFactory,
   WorkspaceManager
@@ -20,6 +21,7 @@ import { ModelInvestigatorAgent } from '~/application/investigator'
 import { ModelReproducerAgent } from '~/application/reproducer'
 import { ModelReviewerAgent } from '~/application/reviewer'
 import { RunCommandHandler, RunService } from '~/application/run'
+import { DeterministicValidationService } from '~/application/validation'
 import { AppConfig } from '~/core/config'
 import { AgentContextManager } from '~/core/context'
 import { TraceRecorder } from '~/core/trace'
@@ -42,6 +44,7 @@ import { FileReproductionArtifactStore } from '~/infra/reproduction'
 import { FileReviewArtifactStore } from '~/infra/review'
 import { FileRunStore } from '~/infra/run'
 import { JsonlTraceWriter } from '~/infra/trace'
+import { FileValidationReportStore } from '~/infra/validation'
 import {
   GitRepositoryToolsFactory,
   GitWorkspaceManager
@@ -63,6 +66,7 @@ export class CompositionRoot {
   readonly reproducerAgent: ReproducerAgent
   readonly implementerAgent: ImplementerAgent
   readonly reviewerAgent: ReviewerAgent
+  readonly validationService: ValidationService
 
   constructor() {
     this.config = new AppConfig(env)
@@ -157,6 +161,18 @@ export class CompositionRoot {
       this.logger
     )
 
+    const validationReportStore = new FileValidationReportStore(
+      this.config.environment.RUNS_ROOT
+    )
+
+    this.validationService = new DeterministicValidationService(
+      this.repositoryToolsFactory,
+      this.processRunnerFactory,
+      validationReportStore,
+      this.traceRecorder,
+      this.logger
+    )
+
     const output = new ConsoleOutput()
 
     const runStore = new FileRunStore(this.config.environment.RUNS_ROOT)
@@ -193,7 +209,8 @@ export class CompositionRoot {
       workspaceManager: this.workspaceManager,
       reproducerAgent: this.reproducerAgent,
       implementerAgent: this.implementerAgent,
-      reviewerAgent: this.reviewerAgent
+      reviewerAgent: this.reviewerAgent,
+      validationService: this.validationService
     })
   }
 }
