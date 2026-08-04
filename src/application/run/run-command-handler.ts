@@ -97,6 +97,14 @@ export class RunCommandHandler {
         'Target repository validation passed'
       )
 
+      state = await this.runService.startStep(
+        state,
+        RunStepName.prepare_workspace,
+        RunStatus.preparing_workspace
+      )
+
+      this.printProgress(state, 'Creating isolated Git workspace')
+
       const workspace = await this.workspaceManager.create({
         runId: state.runId,
         repositoryPath: state.repositoryPath
@@ -143,23 +151,32 @@ export class RunCommandHandler {
 
       if (decision === HumanApprovalDecision.approved) {
         logger.info('Run approved by human')
+
         this.output.writeLine(`Run ${state.runId} approved`)
       } else {
         logger.info('Run rejected by human')
+
         this.output.writeLine(`Run ${state.runId} rejected`)
       }
 
       return 0
     } catch (error) {
+      const failedStep = state.currentStep ?? 'run-command'
+
       if (state.currentStep !== null) {
         state = await this.runService.failStep(state, error)
       }
 
       await this.traceRecorder.record({
         runId: state.runId,
-        step: state.currentStep ?? 'run-command',
+        step: failedStep,
         type: TraceEventType.failure,
-        error: toTraceError(error)
+        error: toTraceError(error),
+        ...(state.workspaceRevision === null
+          ? {}
+          : {
+              workspaceRevision: state.workspaceRevision
+            })
       })
 
       logger.error('Run command failed', {
@@ -189,6 +206,7 @@ export class RunCommandHandler {
     this.output.writeLine(
       `Validation: ${report.passed ? 'PASSED' : 'FAILED'}`
     )
+
     this.output.writeLine('')
   }
 }

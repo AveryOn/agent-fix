@@ -7,7 +7,8 @@ export enum RunStatus {
   rejected = 'rejected',
   running = 'running',
   completed = 'completed',
-  failed = 'failed'
+  failed = 'failed',
+  preparing_workspace = 'preparing_workspace'
 }
 
 export enum RunStepName {
