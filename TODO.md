@@ -274,18 +274,18 @@ Test fails for expected behavior
 - [x] `[080]` ground every review finding in the final diff
 - [x] `[081]` save the review recommendation and evidence
 
-## 13. Validation Module
+## 13. ~~Validation Module~~
 
-- [ ] `[082]` validate every agent output against its Zod schema
-- [ ] `[083]` validate file, symbol, and evidence references
-- [ ] `[084]` validate patch application
-- [ ] `[085]` verify reproduction failure before the fix
-- [ ] `[086]` verify reproduction success after the fix
-- [ ] `[087]` run the full test suite
-- [ ] `[088]` run typecheck, lint, and build
-- [ ] `[089]` validate changed file and forbidden file policies
-- [ ] `[090]` save the final validation report
-- [ ] `[091]` enforce deterministic validation gates before LLM review
+- [x] `[082]` validate every agent output against its Zod schema
+- [x] `[083]` validate file, symbol, and evidence references
+- [x] `[084]` validate patch application
+- [x] `[085]` verify reproduction failure before the fix
+- [x] `[086]` verify reproduction success after the fix
+- [x] `[087]` run the full test suite
+- [x] `[088]` run typecheck, lint, and build
+- [x] `[089]` validate changed file and forbidden file policies
+- [x] `[090]` save the final validation report
+- [x] `[091]` enforce deterministic validation gates before LLM review
 
 Validation order:
 
