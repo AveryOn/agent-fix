@@ -8,6 +8,7 @@ import type {
   TargetRepositoryValidator
 } from '~/core/run'
 import type { TraceRecorder } from '~/core/trace'
+import type { WorkspaceManager } from '~/core/workspace'
 
 import { HumanApprovalDecision, RunStatus, RunStepName } from '~/core/run'
 import { TraceEventType } from '~/core/trace'
@@ -24,7 +25,8 @@ export class RunCommandHandler {
     private readonly approvalPrompt: HumanApprovalPrompt,
     private readonly output: CliOutput,
     private readonly logger: Logger,
-    private readonly traceRecorder: TraceRecorder
+    private readonly traceRecorder: TraceRecorder,
+    private readonly workspaceManager: WorkspaceManager
   ) {}
 
   async execute(input: RunCommandInput): Promise<number> {
@@ -93,6 +95,33 @@ export class RunCommandHandler {
         RunStepName.validate_target,
         RunStatus.ready,
         'Target repository validation passed'
+      )
+
+      const workspace = await this.workspaceManager.create({
+        runId: state.runId,
+        repositoryPath: state.repositoryPath
+      })
+
+      state = await this.runService.attachWorkspace(state, workspace)
+
+      await this.traceRecorder.record({
+        runId: state.runId,
+        step: RunStepName.prepare_workspace,
+        workspaceRevision: workspace.workspaceRevision,
+        type: TraceEventType.tool_result,
+        output: {
+          workspacePath: workspace.workspacePath,
+          baseCommit: workspace.baseCommit,
+          workspaceRevision: workspace.workspaceRevision
+        }
+      })
+
+      this.output.writeLine(`Workspace: ${workspace.workspacePath}`)
+
+      this.output.writeLine(`Base commit: ${workspace.baseCommit}`)
+
+      this.output.writeLine(
+        `Workspace revision: ${workspace.workspaceRevision}`
       )
 
       state = await this.runService.startStep(
