@@ -1,7 +1,7 @@
-import type { ImplementerAgent } from '.~/core/implementation'
 import type { Cli } from '~/core/cli'
 import type { AppConfig } from '~/core/config'
 import type { AgentContextManager } from '~/core/context'
+import type { ImplementerAgent } from '~/core/implementation'
 import type { InvestigatorAgent } from '~/core/investigation'
 import type { Logger } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
