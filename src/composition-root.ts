@@ -5,6 +5,7 @@ import type { Logger, LogLevel } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
 import type { ProcessRunnerFactory } from '~/core/process'
 import type { PromptRegistry } from '~/core/prompt'
+import type { ReproducerAgent } from '~/core/reproduction'
 import type {
   RepositoryToolsFactory,
   WorkspaceManager
@@ -13,6 +14,7 @@ import type {
 import path from 'node:path'
 import { createApp } from '~/app'
 import { ModelInvestigatorAgent } from '~/application/investigator'
+import { ModelReproducerAgent } from '~/application/reproducer'
 import { RunCommandHandler, RunService } from '~/application/run'
 import { AppConfig } from '~/core/config'
 import { AgentContextManager } from '~/core/context'
@@ -31,6 +33,7 @@ import {
   NpmProcessRunnerFactory
 } from '~/infra/process'
 import { FilePromptRegistry } from '~/infra/prompt'
+import { FileReproductionArtifactStore } from '~/infra/reproduction'
 import { FileRunStore } from '~/infra/run'
 import { JsonlTraceWriter } from '~/infra/trace'
 import {
@@ -51,6 +54,7 @@ export class CompositionRoot {
   readonly contextManager: AgentContextManager
   readonly workspaceManager: WorkspaceManager
   readonly repositoryToolsFactory: RepositoryToolsFactory
+  readonly reproducerAgent: ReproducerAgent
 
   constructor() {
     this.config = new AppConfig(env)
@@ -104,6 +108,20 @@ export class CompositionRoot {
       this.logger
     )
 
+    const reproductionArtifactStore = new FileReproductionArtifactStore(
+      this.config.environment.RUNS_ROOT
+    )
+
+    this.reproducerAgent = new ModelReproducerAgent(
+      this.modelProvider,
+      this.promptRegistry,
+      this.repositoryToolsFactory,
+      this.processRunnerFactory,
+      reproductionArtifactStore,
+      this.traceRecorder,
+      this.logger
+    )
+
     const output = new ConsoleOutput()
 
     const runStore = new FileRunStore(this.config.environment.RUNS_ROOT)
@@ -137,7 +155,8 @@ export class CompositionRoot {
       traceRecorder: this.traceRecorder,
       contextManager: this.contextManager,
       repositoryToolsFactory: this.repositoryToolsFactory,
-      workspaceManager: this.workspaceManager
+      workspaceManager: this.workspaceManager,
+      reproducerAgent: this.reproducerAgent
     })
   }
 }

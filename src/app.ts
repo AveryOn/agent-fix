@@ -6,6 +6,7 @@ import type { Logger } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
 import type { ProcessRunnerFactory } from '~/core/process'
 import type { PromptRegistry } from '~/core/prompt'
+import type { ReproducerAgent } from '~/core/reproduction'
 import type { TraceRecorder } from '~/core/trace'
 import type {
   RepositoryToolsFactory,
@@ -24,6 +25,7 @@ export interface ApplicationDependencies {
   readonly contextManager: AgentContextManager
   readonly workspaceManager: WorkspaceManager
   readonly repositoryToolsFactory: RepositoryToolsFactory
+  readonly reproducerAgent: ReproducerAgent
 }
 
 export interface Application {
