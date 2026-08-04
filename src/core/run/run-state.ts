@@ -7,20 +7,23 @@ export enum RunStatus {
   rejected = 'rejected',
   running = 'running',
   completed = 'completed',
-  failed = 'failed'
+  failed = 'failed',
+  preparing_workspace = 'preparing_workspace'
 }
 
 export enum RunStepName {
   initialize_run = 'initialize_run',
   validate_target = 'validate_target',
-  human_approval = 'human_approval'
+  human_approval = 'human_approval',
+  prepare_workspace = 'prepare_workspace'
 }
 
 export enum RunStepStatus {
   running = 'running',
   succeeded = 'succeeded',
   rejected = 'rejected',
-  failed = 'failed'
+  failed = 'failed',
+  preparing_workspace = 'preparing_workspace'
 }
 
 export enum HumanApprovalDecision {
@@ -60,4 +63,11 @@ export interface RunState {
   readonly steps: readonly RunStepState[]
   readonly approval: RunApproval | null
   readonly failure: RunFailure | null
+
+  readonly repositoryRoot: string | null
+  readonly repositoryRelativePath: string | null
+  readonly workspaceRoot: string | null
+  readonly workspacePath: string | null
+  readonly baseCommit: string | null
+  readonly workspaceRevision: string | null
 }

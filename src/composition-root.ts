@@ -2,6 +2,10 @@ import type { Application } from '~/app'
 import type { Cli } from '~/core/cli'
 import type { Logger, LogLevel } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
+import type {
+  RepositoryToolsFactory,
+  WorkspaceManager
+} from '~/core/workspace'
 
 import { createApp } from '~/app'
 import { RunCommandHandler, RunService } from '~/application/run'
@@ -12,13 +16,17 @@ import { env } from '~/env'
 import {
   AgentFixCli,
   ConsoleOutput,
-  FileSystemTargetRepositoryValidator,
+  GitTargetRepositoryValidator,
   ReadlineApprovalPrompt
 } from '~/infra/cli'
 import { createPinoLogger } from '~/infra/logging'
 import { OpenAiModelProvider } from '~/infra/openai'
 import { FileRunStore } from '~/infra/run'
 import { JsonlTraceWriter } from '~/infra/trace'
+import {
+  GitRepositoryToolsFactory,
+  GitWorkspaceManager
+} from '~/infra/workspace'
 
 export class CompositionRoot {
   readonly app: Application
@@ -28,9 +36,17 @@ export class CompositionRoot {
   readonly modelProvider: ModelProvider
   readonly traceRecorder: TraceRecorder
   readonly contextManager: AgentContextManager
+  readonly workspaceManager: WorkspaceManager
+  readonly repositoryToolsFactory: RepositoryToolsFactory
 
   constructor() {
     this.config = new AppConfig(env)
+
+    this.workspaceManager = new GitWorkspaceManager({
+      runsRoot: this.config.environment.RUNS_ROOT
+    })
+
+    this.repositoryToolsFactory = new GitRepositoryToolsFactory()
 
     this.contextManager = new AgentContextManager({
       tokenBudget: this.config.environment.CONTEXT_TOKEN_BUDGET
@@ -60,13 +76,14 @@ export class CompositionRoot {
 
     const runService = new RunService(runStore)
 
-    const repositoryValidator = new FileSystemTargetRepositoryValidator()
+    const repositoryValidator = new GitTargetRepositoryValidator()
 
     const approvalPrompt = new ReadlineApprovalPrompt()
 
     const runCommandHandler = new RunCommandHandler(
       runService,
       repositoryValidator,
+      this.workspaceManager,
       approvalPrompt,
       output,
       this.logger,
@@ -81,7 +98,9 @@ export class CompositionRoot {
       logger: this.logger,
       modelProvider: this.modelProvider,
       traceRecorder: this.traceRecorder,
-      contextManager: this.contextManager
+      contextManager: this.contextManager,
+      repositoryToolsFactory: this.repositoryToolsFactory,
+      workspaceManager: this.workspaceManager
     })
   }
 }

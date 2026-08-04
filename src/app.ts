@@ -4,6 +4,10 @@ import type { AgentContextManager } from '~/core/context'
 import type { Logger } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
 import type { TraceRecorder } from '~/core/trace'
+import type {
+  RepositoryToolsFactory,
+  WorkspaceManager
+} from '~/core/workspace'
 
 export interface ApplicationDependencies {
   readonly config: AppConfig
@@ -12,6 +16,8 @@ export interface ApplicationDependencies {
   readonly traceRecorder: TraceRecorder
   readonly cli: Cli
   readonly contextManager: AgentContextManager
+  readonly workspaceManager: WorkspaceManager
+  readonly repositoryToolsFactory: RepositoryToolsFactory
 }
 
 export interface Application {

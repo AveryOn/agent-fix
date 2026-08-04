@@ -1,4 +1,5 @@
 import type { RunState, RunStore, RunValidationReport } from '~/core/run'
+import type { WorkspaceSnapshot } from '~/core/workspace'
 
 import { randomUUID } from 'node:crypto'
 import {
@@ -39,6 +40,12 @@ export class RunService {
       updatedAt: timestamp,
       approval: null,
       failure: null,
+      repositoryRoot: null,
+      repositoryRelativePath: null,
+      workspaceRoot: null,
+      workspacePath: null,
+      baseCommit: null,
+      workspaceRevision: null,
       steps: [
         {
           name: RunStepName.initialize_run,
@@ -218,6 +225,50 @@ export class RunService {
     report: RunValidationReport
   ): Promise<void> {
     return this.store.saveValidation(state.runId, report)
+  }
+
+  async attachWorkspace(
+    state: RunState,
+    workspace: WorkspaceSnapshot
+  ): Promise<RunState> {
+    this.assertCurrentStep(state, RunStepName.prepare_workspace)
+
+    const timestamp = this.now().toISOString()
+
+    const stepIndex = this.findCurrentStepIndex(
+      state,
+      RunStepName.prepare_workspace
+    )
+
+    const steps = state.steps.map((step, index) =>
+      index === stepIndex
+        ? {
+            ...step,
+            status: RunStepStatus.succeeded,
+            completedAt: timestamp,
+            message: 'Isolated Git workspace created'
+          }
+        : step
+    )
+
+    const nextState: RunState = {
+      ...state,
+      repositoryPath: workspace.repositoryPath,
+      repositoryRoot: workspace.repositoryRoot,
+      repositoryRelativePath: workspace.repositoryRelativePath,
+      workspaceRoot: workspace.workspaceRoot,
+      workspacePath: workspace.workspacePath,
+      baseCommit: workspace.baseCommit,
+      workspaceRevision: workspace.workspaceRevision,
+      status: RunStatus.ready,
+      currentStep: null,
+      updatedAt: timestamp,
+      steps
+    }
+
+    await this.store.saveState(nextState)
+
+    return nextState
   }
 
   private assertCurrentStep(state: RunState, stepName: RunStepName): void {

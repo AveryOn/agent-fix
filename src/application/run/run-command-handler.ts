@@ -8,6 +8,7 @@ import type {
   TargetRepositoryValidator
 } from '~/core/run'
 import type { TraceRecorder } from '~/core/trace'
+import type { WorkspaceManager } from '~/core/workspace'
 
 import { HumanApprovalDecision, RunStatus, RunStepName } from '~/core/run'
 import { TraceEventType } from '~/core/trace'
@@ -21,6 +22,7 @@ export class RunCommandHandler {
   constructor(
     private readonly runService: RunService,
     private readonly repositoryValidator: TargetRepositoryValidator,
+    private readonly workspaceManager: WorkspaceManager,
     private readonly approvalPrompt: HumanApprovalPrompt,
     private readonly output: CliOutput,
     private readonly logger: Logger,
@@ -97,6 +99,41 @@ export class RunCommandHandler {
 
       state = await this.runService.startStep(
         state,
+        RunStepName.prepare_workspace,
+        RunStatus.preparing_workspace
+      )
+
+      this.printProgress(state, 'Creating isolated Git workspace')
+
+      const workspace = await this.workspaceManager.create({
+        runId: state.runId,
+        repositoryPath: state.repositoryPath
+      })
+
+      state = await this.runService.attachWorkspace(state, workspace)
+
+      await this.traceRecorder.record({
+        runId: state.runId,
+        step: RunStepName.prepare_workspace,
+        workspaceRevision: workspace.workspaceRevision,
+        type: TraceEventType.tool_result,
+        output: {
+          workspacePath: workspace.workspacePath,
+          baseCommit: workspace.baseCommit,
+          workspaceRevision: workspace.workspaceRevision
+        }
+      })
+
+      this.output.writeLine(`Workspace: ${workspace.workspacePath}`)
+
+      this.output.writeLine(`Base commit: ${workspace.baseCommit}`)
+
+      this.output.writeLine(
+        `Workspace revision: ${workspace.workspaceRevision}`
+      )
+
+      state = await this.runService.startStep(
+        state,
         RunStepName.human_approval,
         RunStatus.awaiting_approval
       )
@@ -114,23 +151,32 @@ export class RunCommandHandler {
 
       if (decision === HumanApprovalDecision.approved) {
         logger.info('Run approved by human')
+
         this.output.writeLine(`Run ${state.runId} approved`)
       } else {
         logger.info('Run rejected by human')
+
         this.output.writeLine(`Run ${state.runId} rejected`)
       }
 
       return 0
     } catch (error) {
+      const failedStep = state.currentStep ?? 'run-command'
+
       if (state.currentStep !== null) {
         state = await this.runService.failStep(state, error)
       }
 
       await this.traceRecorder.record({
         runId: state.runId,
-        step: state.currentStep ?? 'run-command',
+        step: failedStep,
         type: TraceEventType.failure,
-        error: toTraceError(error)
+        error: toTraceError(error),
+        ...(state.workspaceRevision === null
+          ? {}
+          : {
+              workspaceRevision: state.workspaceRevision
+            })
       })
 
       logger.error('Run command failed', {
@@ -160,6 +206,7 @@ export class RunCommandHandler {
     this.output.writeLine(
       `Validation: ${report.passed ? 'PASSED' : 'FAILED'}`
     )
+
     this.output.writeLine('')
   }
 }
