@@ -146,16 +146,16 @@ Reviewer:
   changed file list
 ```
 
-## 6. Workspace and Repository Tools
+## 6. ~~Workspace and Repository Tools~~
 
-- [ ] `[036]` validate that the target is an accessible Git repository
-- [ ] `[037]` create an isolated workspace for every run
-- [ ] `[038]` save the base commit and current workspace revision
-- [ ] `[039]` implement file listing, code search, and file reading
-- [ ] `[040]` implement patch application and Git diff reading
-- [ ] `[041]` prevent path traversal and access outside the workspace
-- [ ] `[042]` reject forbidden, binary, and oversized files
-- [ ] `[043]` implement workspace rollback and cleanup
+- [x] `[036]` validate that the target is an accessible Git repository
+- [x] `[037]` create an isolated workspace for every run
+- [x] `[038]` save the base commit and current workspace revision
+- [x] `[039]` implement file listing, code search, and file reading
+- [x] `[040]` implement patch application and Git diff reading
+- [x] `[041]` prevent path traversal and access outside the workspace
+- [x] `[042]` reject forbidden, binary, and oversized files
+- [x] `[043]` implement workspace rollback and cleanup
 
 Repository tools:
 
