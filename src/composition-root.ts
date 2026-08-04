@@ -83,11 +83,11 @@ export class CompositionRoot {
     const runCommandHandler = new RunCommandHandler(
       runService,
       repositoryValidator,
+      this.workspaceManager,
       approvalPrompt,
       output,
       this.logger,
-      this.traceRecorder,
-      this.workspaceManager
+      this.traceRecorder
     )
 
     this.cli = new AgentFixCli(runCommandHandler, output, this.logger)
