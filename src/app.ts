@@ -1,6 +1,7 @@
 import type { Cli } from '~/core/cli'
 import type { AppConfig } from '~/core/config'
 import type { AgentContextManager } from '~/core/context'
+import type { InvestigatorAgent } from '~/core/investigation'
 import type { Logger } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
 import type { ProcessRunnerFactory } from '~/core/process'
@@ -15,13 +16,14 @@ export interface ApplicationDependencies {
   readonly config: AppConfig
   readonly modelProvider: ModelProvider
   readonly processRunnerFactory: ProcessRunnerFactory
+  readonly promptRegistry: PromptRegistry
+  readonly investigatorAgent: InvestigatorAgent
   readonly logger: Logger
   readonly traceRecorder: TraceRecorder
   readonly cli: Cli
   readonly contextManager: AgentContextManager
   readonly workspaceManager: WorkspaceManager
   readonly repositoryToolsFactory: RepositoryToolsFactory
-  readonly promptRegistry: PromptRegistry
 }
 
 export interface Application {

@@ -212,14 +212,14 @@ prompts/
     v1.md
 ```
 
-## 9. Investigator Agent
+## 9. ~~Investigator Agent~~
 
-- [ ] `[056]` define investigation input and output schemas
-- [ ] `[057]` implement the repository search tool loop
-- [ ] `[058]` return related files, symbols, and evidence references
-- [ ] `[059]` return a grounded bug hypothesis
-- [ ] `[060]` verify that every referenced file and symbol exists
-- [ ] `[061]` reject hallucinated references and stale investigation results
+- [x] `[056]` define investigation input and output schemas
+- [x] `[057]` implement the repository search tool loop
+- [x] `[058]` return related files, symbols, and evidence references
+- [x] `[059]` return a grounded bug hypothesis
+- [x] `[060]` verify that every referenced file and symbol exists
+- [x] `[061]` reject hallucinated references and stale investigation results
 
 Investigation result:
 
