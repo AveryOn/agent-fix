@@ -232,15 +232,15 @@ interface InvestigationResult {
 }
 ```
 
-## 10. Reproducer Agent
+## 10. ~~Reproducer Agent~~
 
-- [ ] `[062]` define reproduction input and output schemas
-- [ ] `[063]` inspect the existing test structure
-- [ ] `[064]` generate and apply a reproduction test patch
-- [ ] `[065]` run the reproduction test before implementation
-- [ ] `[066]` require the reproduction test to fail for the expected reason
-- [ ] `[067]` reject tests that already pass or do not reproduce the reported bug
-- [ ] `[068]` save the reproduction patch and command output
+- [x] `[062]` define reproduction input and output schemas
+- [x] `[063]` inspect the existing test structure
+- [x] `[064]` generate and apply a reproduction test patch
+- [x] `[065]` run the reproduction test before implementation
+- [x] `[066]` require the reproduction test to fail for the expected reason
+- [x] `[067]` reject tests that already pass or do not reproduce the reported bug
+- [x] `[068]` save the reproduction patch and command output
 
 Reproduction gate:
 
