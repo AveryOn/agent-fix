@@ -45,6 +45,19 @@ export class ReviewResultValidator {
       this.assertGroundedEvidence(evidence, analysis)
     }
 
+    if (
+      !input.validationReport.passed &&
+      decision.recommendation === ReviewRecommendation.approve
+    ) {
+      throw new ReviewerError(
+        'Reviewer approved changes with failed mechanical validation',
+        ReviewerErrorCode.invalid_recommendation,
+        {
+          retryable: true
+        }
+      )
+    }
+
     this.assertMandatorySignalsReviewed(decision, analysis)
 
     if (
@@ -57,19 +70,6 @@ export class ReviewResultValidator {
       throw new ReviewerError(
         'Reviewer did not report an excessive final diff',
         ReviewerErrorCode.missed_excessive_change,
-        {
-          retryable: true
-        }
-      )
-    }
-
-    if (
-      !input.validationReport.passed &&
-      decision.recommendation === ReviewRecommendation.approve
-    ) {
-      throw new ReviewerError(
-        'Reviewer approved changes with failed mechanical validation',
-        ReviewerErrorCode.invalid_recommendation,
         {
           retryable: true
         }

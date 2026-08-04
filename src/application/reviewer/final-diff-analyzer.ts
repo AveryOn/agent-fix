@@ -200,13 +200,17 @@ export class FinalDiffAnalyzer {
       }
 
       if (line.startsWith(' ')) {
-        currentFile.lines.push(
-          createParsedLine(
-            DiffLineTypeValue.context,
-            position.newLine,
-            line.slice(1),
-            position.hunkHeader
-          )
+        const parsedLine = createParsedLine(
+          DiffLineTypeValue.context,
+          position.newLine,
+          line.slice(1),
+          position.hunkHeader
+        )
+
+        currentFile.lines.push(parsedLine)
+
+        signals.push(
+          ...detectSignals(currentFile.path, parsedLine, signals.length)
         )
 
         position = {
@@ -234,13 +238,15 @@ export class FinalDiffAnalyzer {
       0
     )
 
+    const normalizedSignals = removeRedundantRemovedTestSignals(signals)
+
     return {
       files,
       totalAddedLines,
       totalDeletedLines,
       excessive:
         files.length > 10 || totalAddedLines + totalDeletedLines > 300,
-      signals
+      signals: normalizedSignals
     }
   }
 }
@@ -315,11 +321,7 @@ function detectSignals(
     )
   }
 
-  if (
-    (line.type === DiffLineTypeValue.addition ||
-      line.type === DiffLineTypeValue.deletion) &&
-    publicApiPattern.test(line.content)
-  ) {
+  if (publicApiPattern.test(line.content)) {
     signals.push(
       createSignal(
         currentSignalCount + signals.length,
@@ -396,4 +398,34 @@ function isDependencyFile(filePath: string): boolean {
     fileName === 'pnpm-lock.yaml' ||
     fileName === 'yarn.lock'
   )
+}
+
+function removeRedundantRemovedTestSignals(
+  signals: readonly ReviewDiffSignal[]
+): ReviewDiffSignal[] {
+  return signals.filter((signal) => {
+    if (signal.kind !== ReviewDiffSignalKind.removed_test) {
+      return true
+    }
+
+    const replacedByDisabledTest = signals.some(
+      (candidate) =>
+        candidate.kind === ReviewDiffSignalKind.disabled_test &&
+        candidate.evidence.filePath === signal.evidence.filePath &&
+        candidate.evidence.hunkHeader === signal.evidence.hunkHeader &&
+        normalizeTestDeclaration(candidate.evidence.lineContent) ===
+          normalizeTestDeclaration(signal.evidence.lineContent)
+    )
+
+    return !replacedByDisabledTest
+  })
+}
+
+function normalizeTestDeclaration(value: string): string {
+  return value
+    .replace(/\b(it|test|describe)\.skip\s*\(/, '$1(')
+    .replace(/\bxit\s*\(/, 'it(')
+    .replace(/\bxtest\s*\(/, 'test(')
+    .replace(/\bxdescribe\s*\(/, 'describe(')
+    .trim()
 }
