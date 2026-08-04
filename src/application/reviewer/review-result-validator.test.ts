@@ -13,7 +13,10 @@ import {
   ReviewerErrorCode,
   ReviewSeverity
 } from '~/core/review'
-import { MechanicalValidationCheckStatus } from '~/core/validation'
+import {
+  MechanicalValidationCheckStatus,
+  ValidationCheckId
+} from '~/core/validation'
 
 const workspaceRevision = 'revision-004'
 
@@ -69,7 +72,7 @@ describe('ReviewResultValidator', () => {
 
         checks: [
           {
-            id: 'tests',
+            id: ValidationCheckId.full_test_suite,
             status: MechanicalValidationCheckStatus.failed,
             required: true,
             message: 'Tests failed'
@@ -268,7 +271,7 @@ function createInput(): ReviewInput {
 
       checks: [
         {
-          id: 'tests',
+          id: ValidationCheckId.full_test_suite,
 
           status: MechanicalValidationCheckStatus.passed,
 
