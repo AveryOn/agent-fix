@@ -3,6 +3,7 @@ import type { AppConfig } from '~/core/config'
 import type { AgentContextManager } from '~/core/context'
 import type { Logger } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
+import type { ProcessRunnerFactory } from '~/core/process'
 import type { TraceRecorder } from '~/core/trace'
 import type {
   RepositoryToolsFactory,
@@ -12,6 +13,7 @@ import type {
 export interface ApplicationDependencies {
   readonly config: AppConfig
   readonly modelProvider: ModelProvider
+  readonly processRunnerFactory: ProcessRunnerFactory
   readonly logger: Logger
   readonly traceRecorder: TraceRecorder
   readonly cli: Cli

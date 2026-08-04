@@ -4,11 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import {
-  ProcessOperation,
-  ProcessRunnerError,
-  ProcessRunnerErrorCode
-} from '~/core/process'
+import { ProcessOperation, ProcessRunnerErrorCode } from '~/core/process'
 import {
   FileProcessResultStore,
   NpmProcessRunnerFactory
@@ -187,14 +183,16 @@ describe('NpmProcessRunner', () => {
       .create(fixture.workspace)
       .runTests()
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { artifact: _artifact, ...commandResult } = result
+
     const store = new FileProcessResultStore(fixture.runsRoot)
 
     await expect(
-      store.save('run-002', {
-        ...result,
-        artifact: undefined
-      } as never)
-    ).rejects.toBeInstanceOf(ProcessRunnerError)
+      store.save('run-002', commandResult)
+    ).rejects.toMatchObject({
+      code: ProcessRunnerErrorCode.invalid_run
+    })
   })
 })
 
