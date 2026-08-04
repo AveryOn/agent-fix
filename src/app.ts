@@ -1,3 +1,4 @@
+import type { ImplementerAgent } from '.~/core/implementation'
 import type { Cli } from '~/core/cli'
 import type { AppConfig } from '~/core/config'
 import type { AgentContextManager } from '~/core/context'
@@ -26,6 +27,7 @@ export interface ApplicationDependencies {
   readonly workspaceManager: WorkspaceManager
   readonly repositoryToolsFactory: RepositoryToolsFactory
   readonly reproducerAgent: ReproducerAgent
+  readonly implementerAgent: ImplementerAgent
 }
 
 export interface Application {

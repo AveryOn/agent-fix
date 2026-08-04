@@ -1,5 +1,6 @@
 import type { Application } from '~/app'
 import type { Cli } from '~/core/cli'
+import type { ImplementerAgent } from '~/core/implementation'
 import type { InvestigatorAgent } from '~/core/investigation'
 import type { Logger, LogLevel } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
@@ -13,6 +14,7 @@ import type {
 
 import path from 'node:path'
 import { createApp } from '~/app'
+import { ModelImplementerAgent } from '~/application/implementer'
 import { ModelInvestigatorAgent } from '~/application/investigator'
 import { ModelReproducerAgent } from '~/application/reproducer'
 import { RunCommandHandler, RunService } from '~/application/run'
@@ -26,6 +28,7 @@ import {
   GitTargetRepositoryValidator,
   ReadlineApprovalPrompt
 } from '~/infra/cli'
+import { FileImplementationArtifactStore } from '~/infra/implementation'
 import { createPinoLogger } from '~/infra/logging'
 import { OpenAiModelProvider } from '~/infra/openai'
 import {
@@ -55,6 +58,7 @@ export class CompositionRoot {
   readonly workspaceManager: WorkspaceManager
   readonly repositoryToolsFactory: RepositoryToolsFactory
   readonly reproducerAgent: ReproducerAgent
+  readonly implementerAgent: ImplementerAgent
 
   constructor() {
     this.config = new AppConfig(env)
@@ -122,6 +126,21 @@ export class CompositionRoot {
       this.logger
     )
 
+    const implementationArtifactStore =
+      new FileImplementationArtifactStore(
+        this.config.environment.RUNS_ROOT
+      )
+
+    this.implementerAgent = new ModelImplementerAgent(
+      this.modelProvider,
+      this.promptRegistry,
+      this.repositoryToolsFactory,
+      this.processRunnerFactory,
+      implementationArtifactStore,
+      this.traceRecorder,
+      this.logger
+    )
+
     const output = new ConsoleOutput()
 
     const runStore = new FileRunStore(this.config.environment.RUNS_ROOT)
@@ -156,7 +175,8 @@ export class CompositionRoot {
       contextManager: this.contextManager,
       repositoryToolsFactory: this.repositoryToolsFactory,
       workspaceManager: this.workspaceManager,
-      reproducerAgent: this.reproducerAgent
+      reproducerAgent: this.reproducerAgent,
+      implementerAgent: this.implementerAgent
     })
   }
 }
