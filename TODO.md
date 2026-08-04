@@ -265,14 +265,14 @@ Test fails for expected behavior
 - [x] `[074]` rerun the reproduction test after implementation
 - [x] `[075]` save the implementation patch and test result
 
-## 12. Reviewer Agent
+## 12. ~~Reviewer Agent~~
 
-- [ ] `[076]` define review input and output schemas
-- [ ] `[077]` provide the final diff and mechanical validation report
-- [ ] `[078]` detect suspicious, unrelated, or excessive changes
-- [ ] `[079]` report implementation risks and public API changes
-- [ ] `[080]` ground every review finding in the final diff
-- [ ] `[081]` save the review recommendation and evidence
+- [x] `[076]` define review input and output schemas
+- [x] `[077]` provide the final diff and mechanical validation report
+- [x] `[078]` detect suspicious, unrelated, or excessive changes
+- [x] `[079]` report implementation risks and public API changes
+- [x] `[080]` ground every review finding in the final diff
+- [x] `[081]` save the review recommendation and evidence
 
 ## 13. Validation Module
 

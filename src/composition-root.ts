@@ -7,6 +7,7 @@ import type { ModelProvider } from '~/core/model'
 import type { ProcessRunnerFactory } from '~/core/process'
 import type { PromptRegistry } from '~/core/prompt'
 import type { ReproducerAgent } from '~/core/reproduction'
+import type { ReviewerAgent } from '~/core/review'
 import type {
   RepositoryToolsFactory,
   WorkspaceManager
@@ -17,6 +18,7 @@ import { createApp } from '~/app'
 import { ModelImplementerAgent } from '~/application/implementer'
 import { ModelInvestigatorAgent } from '~/application/investigator'
 import { ModelReproducerAgent } from '~/application/reproducer'
+import { ModelReviewerAgent } from '~/application/reviewer'
 import { RunCommandHandler, RunService } from '~/application/run'
 import { AppConfig } from '~/core/config'
 import { AgentContextManager } from '~/core/context'
@@ -37,6 +39,7 @@ import {
 } from '~/infra/process'
 import { FilePromptRegistry } from '~/infra/prompt'
 import { FileReproductionArtifactStore } from '~/infra/reproduction'
+import { FileReviewArtifactStore } from '~/infra/review'
 import { FileRunStore } from '~/infra/run'
 import { JsonlTraceWriter } from '~/infra/trace'
 import {
@@ -59,6 +62,7 @@ export class CompositionRoot {
   readonly repositoryToolsFactory: RepositoryToolsFactory
   readonly reproducerAgent: ReproducerAgent
   readonly implementerAgent: ImplementerAgent
+  readonly reviewerAgent: ReviewerAgent
 
   constructor() {
     this.config = new AppConfig(env)
@@ -141,6 +145,18 @@ export class CompositionRoot {
       this.logger
     )
 
+    const reviewArtifactStore = new FileReviewArtifactStore(
+      this.config.environment.RUNS_ROOT
+    )
+
+    this.reviewerAgent = new ModelReviewerAgent(
+      this.modelProvider,
+      this.promptRegistry,
+      reviewArtifactStore,
+      this.traceRecorder,
+      this.logger
+    )
+
     const output = new ConsoleOutput()
 
     const runStore = new FileRunStore(this.config.environment.RUNS_ROOT)
@@ -176,7 +192,8 @@ export class CompositionRoot {
       repositoryToolsFactory: this.repositoryToolsFactory,
       workspaceManager: this.workspaceManager,
       reproducerAgent: this.reproducerAgent,
-      implementerAgent: this.implementerAgent
+      implementerAgent: this.implementerAgent,
+      reviewerAgent: this.reviewerAgent
     })
   }
 }
