@@ -4,29 +4,33 @@ import type {
   TargetRepositoryValidator
 } from '~/core/run'
 
-import { constants } from 'node:fs'
 import { access, stat } from 'node:fs/promises'
 import path from 'node:path'
+import { GitCommandRunner } from '~/infra/git'
 
-export class FileSystemTargetRepositoryValidator implements TargetRepositoryValidator {
-  constructor(private readonly now: () => Date = () => new Date()) {}
+export class GitTargetRepositoryValidator implements TargetRepositoryValidator {
+  constructor(
+    private readonly git = new GitCommandRunner(),
+    private readonly now: () => Date = () => new Date()
+  ) {}
 
   async validate(repositoryPath: string): Promise<RunValidationReport> {
     const resolvedPath = path.resolve(repositoryPath)
+
     const checks: RunValidationCheck[] = []
 
-    const repositoryStat = await stat(resolvedPath).catch(() => null)
+    const targetStat = await stat(resolvedPath).catch(() => null)
+
+    const exists = targetStat !== null
+    const isDirectory = targetStat?.isDirectory() === true
 
     checks.push({
       id: 'repository.exists',
-      passed: repositoryStat !== null,
-      message:
-        repositoryStat !== null
-          ? 'Repository path exists'
-          : 'Repository path does not exist'
+      passed: exists,
+      message: exists
+        ? 'Repository path exists'
+        : 'Repository path does not exist'
     })
-
-    const isDirectory = repositoryStat?.isDirectory() === true
 
     checks.push({
       id: 'repository.directory',
@@ -42,20 +46,53 @@ export class FileSystemTargetRepositoryValidator implements TargetRepositoryVali
       id: 'repository.readable',
       passed: readable,
       message: readable
-        ? 'Repository directory is readable'
-        : 'Repository directory is not readable'
+        ? 'Repository path is readable'
+        : 'Repository path is not readable'
     })
 
-    const gitMetadataExists = isDirectory
-      ? await pathExists(path.join(resolvedPath, '.git'))
-      : false
+    let gitRepository = false
+    let headExists = false
+
+    if (readable) {
+      try {
+        const result = await this.git.run(
+          ['rev-parse', '--is-inside-work-tree'],
+          resolvedPath
+        )
+
+        gitRepository = result.stdout.trim() === 'true'
+      } catch {
+        gitRepository = false
+      }
+
+      if (gitRepository) {
+        try {
+          await this.git.run(
+            ['rev-parse', '--verify', 'HEAD'],
+            resolvedPath
+          )
+
+          headExists = true
+        } catch {
+          headExists = false
+        }
+      }
+    }
 
     checks.push({
-      id: 'repository.git-metadata',
-      passed: gitMetadataExists,
-      message: gitMetadataExists
-        ? 'Git metadata was found'
-        : 'Git metadata was not found'
+      id: 'repository.git',
+      passed: gitRepository,
+      message: gitRepository
+        ? 'Target belongs to a Git work tree'
+        : 'Target does not belong to a Git work tree'
+    })
+
+    checks.push({
+      id: 'repository.head',
+      passed: headExists,
+      message: headExists
+        ? 'Git repository has a valid HEAD commit'
+        : 'Git repository does not have a valid HEAD commit'
     })
 
     return {
@@ -69,16 +106,7 @@ export class FileSystemTargetRepositoryValidator implements TargetRepositoryVali
 
 async function isReadable(targetPath: string): Promise<boolean> {
   try {
-    await access(targetPath, constants.R_OK)
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function pathExists(targetPath: string): Promise<boolean> {
-  try {
-    await stat(targetPath)
+    await access(targetPath)
     return true
   } catch {
     return false
