@@ -2,6 +2,7 @@ import type { Application } from '~/app'
 import type { Cli } from '~/core/cli'
 import type { Logger, LogLevel } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
+import type { ProcessRunnerFactory } from '~/core/process'
 import type {
   RepositoryToolsFactory,
   WorkspaceManager
@@ -21,6 +22,10 @@ import {
 } from '~/infra/cli'
 import { createPinoLogger } from '~/infra/logging'
 import { OpenAiModelProvider } from '~/infra/openai'
+import {
+  FileProcessResultStore,
+  NpmProcessRunnerFactory
+} from '~/infra/process'
 import { FileRunStore } from '~/infra/run'
 import { JsonlTraceWriter } from '~/infra/trace'
 import {
@@ -34,6 +39,7 @@ export class CompositionRoot {
   readonly config: AppConfig
   readonly logger: Logger
   readonly modelProvider: ModelProvider
+  readonly processRunnerFactory: ProcessRunnerFactory
   readonly traceRecorder: TraceRecorder
   readonly contextManager: AgentContextManager
   readonly workspaceManager: WorkspaceManager
@@ -47,6 +53,15 @@ export class CompositionRoot {
     })
 
     this.repositoryToolsFactory = new GitRepositoryToolsFactory()
+
+    const processResultStore = new FileProcessResultStore(
+      this.config.environment.RUNS_ROOT
+    )
+
+    this.processRunnerFactory = new NpmProcessRunnerFactory({
+      commandTimeoutMs: this.config.environment.COMMAND_TIMEOUT_MS,
+      resultStore: processResultStore
+    })
 
     this.contextManager = new AgentContextManager({
       tokenBudget: this.config.environment.CONTEXT_TOKEN_BUDGET
@@ -97,6 +112,7 @@ export class CompositionRoot {
       config: this.config,
       logger: this.logger,
       modelProvider: this.modelProvider,
+      processRunnerFactory: this.processRunnerFactory,
       traceRecorder: this.traceRecorder,
       contextManager: this.contextManager,
       repositoryToolsFactory: this.repositoryToolsFactory,

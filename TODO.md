@@ -171,14 +171,14 @@ getWorkspaceRevision
 
 All agents inside one run must use the same isolated workspace.
 
-## 7. Process Runner Module
+## 7. ~~Process Runner Module~~
 
-- [ ] `[044]` implement allowlisted command execution
-- [ ] `[045]` implement command timeout and process termination
-- [ ] `[046]` capture stdout, stderr, exit code, and duration
-- [ ] `[047]` implement test, typecheck, lint, and build operations
-- [ ] `[048]` save command results as run artifacts
-- [ ] `[049]` prevent agents from receiving unrestricted shell access
+- [x] `[044]` implement allowlisted command execution
+- [x] `[045]` implement command timeout and process termination
+- [x] `[046]` capture stdout, stderr, exit code, and duration
+- [x] `[047]` implement test, typecheck, lint, and build operations
+- [x] `[048]` save command results as run artifacts
+- [x] `[049]` prevent agents from receiving unrestricted shell access
 
 Allowed operations:
 
