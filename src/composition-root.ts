@@ -1,5 +1,6 @@
 import type { Application } from '~/app'
 import type { Cli } from '~/core/cli'
+import type { InvestigatorAgent } from '~/core/investigation'
 import type { Logger, LogLevel } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
 import type { ProcessRunnerFactory } from '~/core/process'
@@ -11,6 +12,7 @@ import type {
 
 import path from 'node:path'
 import { createApp } from '~/app'
+import { ModelInvestigatorAgent } from '~/application/investigator'
 import { RunCommandHandler, RunService } from '~/application/run'
 import { AppConfig } from '~/core/config'
 import { AgentContextManager } from '~/core/context'
@@ -43,11 +45,12 @@ export class CompositionRoot {
   readonly logger: Logger
   readonly modelProvider: ModelProvider
   readonly processRunnerFactory: ProcessRunnerFactory
+  readonly promptRegistry: PromptRegistry
+  readonly investigatorAgent: InvestigatorAgent
   readonly traceRecorder: TraceRecorder
   readonly contextManager: AgentContextManager
   readonly workspaceManager: WorkspaceManager
   readonly repositoryToolsFactory: RepositoryToolsFactory
-  readonly promptRegistry: PromptRegistry
 
   constructor() {
     this.config = new AppConfig(env)
@@ -93,6 +96,14 @@ export class CompositionRoot {
 
     this.traceRecorder = new TraceRecorder(traceWriter)
 
+    this.investigatorAgent = new ModelInvestigatorAgent(
+      this.modelProvider,
+      this.promptRegistry,
+      this.repositoryToolsFactory,
+      this.traceRecorder,
+      this.logger
+    )
+
     const output = new ConsoleOutput()
 
     const runStore = new FileRunStore(this.config.environment.RUNS_ROOT)
@@ -121,11 +132,12 @@ export class CompositionRoot {
       logger: this.logger,
       modelProvider: this.modelProvider,
       processRunnerFactory: this.processRunnerFactory,
+      promptRegistry: this.promptRegistry,
+      investigatorAgent: this.investigatorAgent,
       traceRecorder: this.traceRecorder,
       contextManager: this.contextManager,
       repositoryToolsFactory: this.repositoryToolsFactory,
-      workspaceManager: this.workspaceManager,
-      promptRegistry: this.promptRegistry
+      workspaceManager: this.workspaceManager
     })
   }
 }
