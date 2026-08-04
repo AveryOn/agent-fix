@@ -1,7 +1,4 @@
-import type {
-  FinalDiffAnalysis,
-  ParsedDiffLine
-} from '~/application/reviewer/final-diff-analyzer'
+import type { FinalDiffAnalysis } from '~/application/reviewer/final-diff-analyzer'
 import type {
   DiffEvidenceReference,
   ReviewDecision,
@@ -159,24 +156,13 @@ function collectReviewEvidence(
   ]
 }
 
-function createEvidenceKey(
-  evidence: DiffEvidenceReference | ParsedDiffLine
-): string {
-  if ('filePath' in evidence) {
-    return [
-      evidence.filePath,
-      evidence.hunkHeader,
-      evidence.lineType,
-      evidence.lineNumber,
-      evidence.lineContent
-    ].join('\u0000')
-  }
-
+function createEvidenceKey(evidence: DiffEvidenceReference): string {
   return [
+    evidence.filePath,
     evidence.hunkHeader,
-    evidence.type,
+    evidence.lineType,
     evidence.lineNumber,
-    evidence.content
+    evidence.lineContent
   ].join('\u0000')
 }
 
