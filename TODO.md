@@ -255,15 +255,15 @@ Test fails for expected behavior
   → continue
 ```
 
-## 11. Implementer Agent
+## 11. ~~Implementer Agent~~
 
-- [ ] `[069]` define implementation input and output schemas
-- [ ] `[070]` provide only confirmed evidence and the failing test result
-- [ ] `[071]` generate and apply the implementation patch
-- [ ] `[072]` restrict changes to the allowed file scope
-- [ ] `[073]` prevent modification of the reproduction test
-- [ ] `[074]` rerun the reproduction test after implementation
-- [ ] `[075]` save the implementation patch and test result
+- [x] `[069]` define implementation input and output schemas
+- [x] `[070]` provide only confirmed evidence and the failing test result
+- [x] `[071]` generate and apply the implementation patch
+- [x] `[072]` restrict changes to the allowed file scope
+- [x] `[073]` prevent modification of the reproduction test
+- [x] `[074]` rerun the reproduction test after implementation
+- [x] `[075]` save the implementation patch and test result
 
 ## 12. Reviewer Agent
 
