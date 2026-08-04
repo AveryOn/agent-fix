@@ -1,4 +1,5 @@
 import type { ModelTokenUsage } from '~/core/model'
+import type { PromptVersionIdentifier } from '~/core/prompt'
 
 export type TokenUsage = ModelTokenUsage
 
@@ -31,7 +32,7 @@ export interface TraceEvent {
   readonly input?: unknown
   readonly output?: unknown
   readonly error?: TraceError
-  readonly promptVersion?: string
+  readonly promptVersion?: PromptVersionIdentifier
   readonly durationMs?: number
   readonly tokenUsage?: TokenUsage
   readonly estimatedCostUsd?: number

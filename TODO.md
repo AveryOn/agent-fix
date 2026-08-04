@@ -189,14 +189,14 @@ runLint
 runBuild
 ```
 
-## 8. Prompt Module
+## 8. ~~Prompt Module~~
 
-- [ ] `[050]` create prompt directories for every agent
-- [ ] `[051]` create investigator, reproducer, implementer, and reviewer prompts
-- [ ] `[052]` define tool access and output constraints inside every prompt
-- [ ] `[053]` add prompt version identifiers
-- [ ] `[054]` load prompts through a prompt registry
-- [ ] `[055]` save prompt versions in traces and evaluation results
+- [x] `[050]` create prompt directories for every agent
+- [x] `[051]` create investigator, reproducer, implementer, and reviewer prompts
+- [x] `[052]` define tool access and output constraints inside every prompt
+- [x] `[053]` add prompt version identifiers
+- [x] `[054]` load prompts through a prompt registry
+- [x] `[055]` save prompt versions in traces and evaluation results
 
 Prompt structure:
 

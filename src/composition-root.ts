@@ -3,11 +3,13 @@ import type { Cli } from '~/core/cli'
 import type { Logger, LogLevel } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
 import type { ProcessRunnerFactory } from '~/core/process'
+import type { PromptRegistry } from '~/core/prompt'
 import type {
   RepositoryToolsFactory,
   WorkspaceManager
 } from '~/core/workspace'
 
+import path from 'node:path'
 import { createApp } from '~/app'
 import { RunCommandHandler, RunService } from '~/application/run'
 import { AppConfig } from '~/core/config'
@@ -26,6 +28,7 @@ import {
   FileProcessResultStore,
   NpmProcessRunnerFactory
 } from '~/infra/process'
+import { FilePromptRegistry } from '~/infra/prompt'
 import { FileRunStore } from '~/infra/run'
 import { JsonlTraceWriter } from '~/infra/trace'
 import {
@@ -44,6 +47,7 @@ export class CompositionRoot {
   readonly contextManager: AgentContextManager
   readonly workspaceManager: WorkspaceManager
   readonly repositoryToolsFactory: RepositoryToolsFactory
+  readonly promptRegistry: PromptRegistry
 
   constructor() {
     this.config = new AppConfig(env)
@@ -61,6 +65,10 @@ export class CompositionRoot {
     this.processRunnerFactory = new NpmProcessRunnerFactory({
       commandTimeoutMs: this.config.environment.COMMAND_TIMEOUT_MS,
       resultStore: processResultStore
+    })
+
+    this.promptRegistry = new FilePromptRegistry({
+      promptsRoot: path.resolve('prompts')
     })
 
     this.contextManager = new AgentContextManager({
@@ -116,7 +124,8 @@ export class CompositionRoot {
       traceRecorder: this.traceRecorder,
       contextManager: this.contextManager,
       repositoryToolsFactory: this.repositoryToolsFactory,
-      workspaceManager: this.workspaceManager
+      workspaceManager: this.workspaceManager,
+      promptRegistry: this.promptRegistry
     })
   }
 }
