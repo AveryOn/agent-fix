@@ -97,16 +97,16 @@ Run directory:
     final.diff
 ```
 
-## 5. Context Management Module
+## 5. ~~Context Management Module~~
 
-- [ ] `[028]` define the `AgentContext` envelope
-- [ ] `[029]` define what each agent can and cannot see
-- [ ] `[030]` pass artifact references instead of the complete run history
-- [ ] `[031]` enforce a context and token budget for every agent
-- [ ] `[032]` summarize oversized investigation results
-- [ ] `[033]` attach the workspace revision to every context snapshot
-- [ ] `[034]` reject agent results produced from stale workspace context
-- [ ] `[035]` add context boundary and stale-context tests
+- [x] `[028]` define the `AgentContext` envelope
+- [x] `[029]` define what each agent can and cannot see
+- [x] `[030]` pass artifact references instead of the complete run history
+- [x] `[031]` enforce a context and token budget for every agent
+- [x] `[032]` summarize oversized investigation results
+- [x] `[033]` attach the workspace revision to every context snapshot
+- [x] `[034]` reject agent results produced from stale workspace context
+- [x] `[035]` add context boundary and stale-context tests
 
 Context envelope:
 
