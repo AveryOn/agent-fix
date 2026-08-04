@@ -1,5 +1,6 @@
 import type { Cli } from '~/core/cli'
 import type { AppConfig } from '~/core/config'
+import type { AgentContextManager } from '~/core/context'
 import type { Logger } from '~/core/logging'
 import type { ModelProvider } from '~/core/model'
 import type { TraceRecorder } from '~/core/trace'
@@ -10,6 +11,7 @@ export interface ApplicationDependencies {
   readonly logger: Logger
   readonly traceRecorder: TraceRecorder
   readonly cli: Cli
+  readonly contextManager: AgentContextManager
 }
 
 export interface Application {
