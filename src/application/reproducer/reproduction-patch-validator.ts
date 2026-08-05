@@ -118,6 +118,34 @@ export class ReproductionPatchValidator {
       )
     }
 
+    const markerAssertionExpectingBuggyCountPattern = new RegExp(
+      [
+        'expect\\(',
+        '[\\s\\S]*?',
+        `['"\`]${escapedMarker}['"\`]`,
+        '[\\s\\S]*?',
+        '\\)',
+        '\\s*\\.to(?:Be|Equal|HaveLength)\\(\\s*2\\s*\\)'
+      ].join(''),
+      'u'
+    )
+
+    if (markerAssertionExpectingBuggyCountPattern.test(addedContent)) {
+      throw new ReproducerError(
+        [
+          'Expected failure marker is attached to an assertion of the current buggy behavior',
+          `Required marker: ${plan.expectedFailureMarker}`,
+          'For duplicate payment delivery, the marked assertion must expect exactly one payment',
+          'Do not use toBe(2), toEqual(2), or toHaveLength(2)',
+          'Use expect(payments, marker).toHaveLength(1)'
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+
     const markerInCommentPattern = new RegExp(
       `//[^\\n]*${escapedMarker}`,
       'u'
