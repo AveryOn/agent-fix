@@ -376,15 +376,15 @@ Human Approval
 Final Diff
 ```
 
-## 16. Billing Demo Fixture
+## 16. ~~Billing Demo Fixture~~
 
-- [ ] `[111]` create a minimal billing fixture project
-- [ ] `[112]` implement payment webhook processing
-- [ ] `[113]` add the duplicate webhook payment bug
-- [ ] `[114]` add a minimal test environment
-- [ ] `[115]` add test, typecheck, lint, and build scripts
-- [ ] `[116]` verify that the duplicate payment bug exists before AgentFix runs
-- [ ] `[117]` document the expected idempotent fix behavior
+- [x] `[111]` create a minimal billing fixture project
+- [x] `[112]` implement payment webhook processing
+- [x] `[113]` add the duplicate webhook payment bug
+- [x] `[114]` add a minimal test environment
+- [x] `[115]` add test, typecheck, lint, and build scripts
+- [x] `[116]` verify that the duplicate payment bug exists before AgentFix runs
+- [x] `[117]` document the expected idempotent fix behavior
 
 Fixture:
 
