@@ -7,13 +7,7 @@ export default tseslint.config(
   },
 
   {
-    files: ['**/*.js'],
-
-    ...eslint.configs.recommended
-  },
-
-  {
-    files: ['**/*.ts'],
+    files: ['src/**/*.ts', 'tests/**/*.ts'],
 
     extends: [
       eslint.configs.recommended,
@@ -37,9 +31,7 @@ export default tseslint.config(
       ],
 
       '@typescript-eslint/no-floating-promises': 'error',
-
       '@typescript-eslint/no-misused-promises': 'error',
-
       '@typescript-eslint/no-explicit-any': 'error'
     }
   }

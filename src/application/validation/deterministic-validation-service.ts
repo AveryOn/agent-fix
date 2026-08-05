@@ -386,16 +386,24 @@ export class DeterministicValidationService implements ValidationService {
     operation: () => Promise<ProcessOperationResult>,
     successMessage: string
   ): Promise<boolean> {
-    return this.runCheck(checks, id, async () => {
-      const result = await operation()
+    const result = await operation()
 
-      assertSuccessfulProcessResult(result)
+    const passed =
+      !result.timedOut && result.succeeded && result.exitCode === 0
 
-      return {
-        message: successMessage,
-        artifact: result.artifact
-      }
+    checks.push({
+      id,
+      status: passed
+        ? MechanicalValidationCheckStatus.passed
+        : MechanicalValidationCheckStatus.failed,
+      required: true,
+      message: passed
+        ? successMessage
+        : `${result.operation} failed with exit code ${String(result.exitCode)}`,
+      artifact: result.artifact
     })
+
+    return passed
   }
 
   private async runCheck(
@@ -552,18 +560,6 @@ export class DeterministicValidationService implements ValidationService {
       finalDiff,
       changedFiles
     }
-  }
-}
-
-function assertSuccessfulProcessResult(
-  result: ProcessOperationResult
-): void {
-  if (result.timedOut || !result.succeeded || result.exitCode !== 0) {
-    throw new ValidationError(
-      `${result.operation} failed with exit code ` +
-        String(result.exitCode),
-      ValidationErrorCode.process_check_failed
-    )
   }
 }
 

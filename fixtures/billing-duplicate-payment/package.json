@@ -8,7 +8,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "eslint src tests",
     "build": "tsc -p tsconfig.build.json",
     "verify:bug": "tsx scripts/verify-duplicate-bug.ts",
     "verify": "npm run typecheck && npm run lint && npm run build && npm run test"
