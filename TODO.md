@@ -535,7 +535,7 @@ Recording structure:
 
 ## 21. Final Verification
 
-- [ ] `[155]` install dependencies from a clean state
+- [x] `[155]` install dependencies from a clean state
 - [ ] `[156]` run project typecheck, lint, and build
 - [ ] `[157]` run critical validator and context-management tests
 - [ ] `[158]` run the complete pipeline integration test
