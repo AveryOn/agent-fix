@@ -1,6 +1,8 @@
 node_modules/
 dist/
 coverage/
+evaluations/comparison.json
+evaluations/current.json
 
 .runs/
 .runs-test/
