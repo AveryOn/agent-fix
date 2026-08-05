@@ -155,10 +155,10 @@ function createPlan(
       '+++ b/tests/payment-webhook.test.ts',
       '@@ -1,1 +1,5 @@',
       ' describe("webhook", () => {})',
-      '+',
-      '+if (payments.length !== 1) {',
-      `+  throw new Error('${marker}')`,
-      '+}'
+      '+expect(',
+      '+  payments,',
+      `+  '${marker}'`,
+      '+).toHaveLength(1)'
     ].join('\n'),
 
     ...overrides

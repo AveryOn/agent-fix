@@ -283,6 +283,55 @@ export class GitRepositoryTools implements RepositoryTools {
     }
   }
 
+  async revertPatch(patch: string): Promise<void> {
+    const patchSize = Buffer.byteLength(patch)
+
+    if (patchSize === 0 || patchSize > this.maximumPatchSizeBytes) {
+      throw new WorkspaceError(
+        'Rollback patch is empty or exceeds the size limit',
+        WorkspaceErrorCode.invalid_patch
+      )
+    }
+
+    const temporaryDirectory = await mkdtemp(
+      path.join(tmpdir(), 'agent-fix-rollback-')
+    )
+
+    const patchFile = path.join(temporaryDirectory, 'change.patch')
+
+    try {
+      await writeFile(patchFile, patch, 'utf8')
+
+      const directoryOption =
+        this.workspace.repositoryRelativePath.length === 0
+          ? []
+          : [`--directory=${this.workspace.repositoryRelativePath}`]
+
+      await this.git.run(
+        ['apply', '--check', '--reverse', ...directoryOption, patchFile],
+        this.workspace.workspaceRoot
+      )
+
+      await this.git.run(
+        ['apply', '--reverse', ...directoryOption, patchFile],
+        this.workspace.workspaceRoot
+      )
+    } catch (error) {
+      throw new WorkspaceError(
+        'Failed to revert applied patch',
+        WorkspaceErrorCode.invalid_patch,
+        {
+          cause: error
+        }
+      )
+    } finally {
+      await rm(temporaryDirectory, {
+        recursive: true,
+        force: true
+      })
+    }
+  }
+
   async getDiff(): Promise<string> {
     const pathspec = this.getPathspec()
 

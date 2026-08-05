@@ -96,6 +96,28 @@ export class ReproductionPatchValidator {
 
     const escapedMarker = escapeRegExp(plan.expectedFailureMarker)
 
+    const unconditionalMarkerThrowPattern = new RegExp(
+      `throw\\s+new\\s+Error\\(\\s*['"\`]${escapedMarker}['"\`]\\s*\\)`,
+      'u'
+    )
+
+    if (unconditionalMarkerThrowPattern.test(addedContent)) {
+      throw new ReproducerError(
+        [
+          'Expected failure marker is emitted by an unconditional throw',
+          `Required marker: ${plan.expectedFailureMarker}`,
+          'The reproduction must fail because a behavioral assertion detects the bug',
+          'Do not throw the marker unconditionally',
+          'Use the marker as the Vitest assertion message',
+          'Example: expect(payments, marker).toHaveLength(1)'
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+
     const markerInCommentPattern = new RegExp(
       `//[^\\n]*${escapedMarker}`,
       'u'

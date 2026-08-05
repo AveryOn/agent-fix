@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { ImplementationResult } from '~/core/implementation'
 import type { InvestigationResult } from '~/core/investigation'
 import type { ReproductionResult } from '~/core/reproduction'
@@ -291,6 +292,8 @@ function createRepositoryTools(
     readFile: () => Promise.reject(new Error('Not used')),
 
     applyPatch: () => Promise.reject(new Error('Not used')),
+
+    revertPatch: async (_patch: string): Promise<void> => {},
 
     getDiff: () => Promise.resolve(finalDiff),
 

@@ -427,6 +427,8 @@ class MemoryRepositoryTools implements RepositoryTools {
     )
   }
 
+  async revertPatch(_patch: string): Promise<void> {}
+
   getDiff(): Promise<string> {
     return Promise.reject(
       new Error('getDiff is not available to investigator tests')

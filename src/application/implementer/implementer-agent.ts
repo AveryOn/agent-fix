@@ -174,6 +174,8 @@ export class ModelImplementerAgent implements ImplementerAgent {
         sourceWorkspaceRevision
       )
 
+      let patchApplied = false
+
       const applyResult = await this.applyPatch(
         input,
         prompt.id,
@@ -181,80 +183,111 @@ export class ModelImplementerAgent implements ImplementerAgent {
         plan
       )
 
-      const reproductionTestFiles = new Set(input.reproduction.testFiles)
+      patchApplied = true
 
-      const implementationChangedFiles = applyResult.changedFiles.filter(
-        (filePath) => !reproductionTestFiles.has(filePath)
-      )
+      try {
+        const reproductionTestFiles = new Set(input.reproduction.testFiles)
 
-      assertChangedFilesMatch(
-        expectedChangedFiles,
-        implementationChangedFiles
-      )
+        const implementationChangedFiles = applyResult.changedFiles.filter(
+          (filePath) => !reproductionTestFiles.has(filePath)
+        )
 
-      const patchedWorkspace: WorkspaceSnapshot = {
-        ...input.workspace,
-        workspaceRevision: applyResult.workspaceRevision
-      }
+        assertChangedFilesMatch(
+          expectedChangedFiles,
+          implementationChangedFiles
+        )
 
-      const processRunner =
-        this.processRunnerFactory.create(patchedWorkspace)
-
-      const commandResult = await this.runTests(
-        input,
-        prompt.id,
-        processRunner.runTests.bind(processRunner),
-        applyResult.workspaceRevision
-      )
-
-      this.implementationGate.assertReproductionFixed(
-        commandResult,
-        input.reproduction.expectedFailureMarker
-      )
-
-      const artifacts = await this.artifactStore.save({
-        runId: input.context.context.runId,
-        plan,
-        sourceWorkspaceRevision,
-        workspaceRevision: applyResult.workspaceRevision,
-        reproduction: input.reproduction,
-        commandResult
-      })
-
-      const result: ImplementationResult = {
-        summary: plan.summary,
-        patch: plan.patch,
-        changedFiles: plan.changedFiles,
-        risks: plan.risks,
-        sourceWorkspaceRevision,
-        workspaceRevision: applyResult.workspaceRevision,
-        commandResult,
-        artifacts
-      }
-
-      await this.traceRecorder.record({
-        runId: input.context.context.runId,
-        step: implementerStep,
-        agent: AgentRole.implementer,
-        workspaceRevision: result.workspaceRevision,
-        type: TraceEventType.agent_result,
-        promptVersion: prompt.id,
-        output: {
-          summary: result.summary,
-          changedFiles: result.changedFiles,
-          risks: result.risks,
-          implementationArtifact: result.artifacts.implementation,
-          patchArtifact: result.artifacts.patch,
-          commandArtifact: result.artifacts.command
+        const patchedWorkspace: WorkspaceSnapshot = {
+          ...input.workspace,
+          workspaceRevision: applyResult.workspaceRevision
         }
-      })
 
-      logger.info('Implementation completed', {
-        changedFiles: result.changedFiles,
-        commandExecutionId: commandResult.executionId
-      })
+        const processRunner =
+          this.processRunnerFactory.create(patchedWorkspace)
 
-      return result
+        const commandResult = await this.runTests(
+          input,
+          prompt.id,
+          processRunner.runTests.bind(processRunner),
+          applyResult.workspaceRevision
+        )
+
+        this.implementationGate.assertReproductionFixed(
+          commandResult,
+          input.reproduction.expectedFailureMarker
+        )
+
+        const artifacts = await this.artifactStore.save({
+          runId: input.context.context.runId,
+          plan,
+          sourceWorkspaceRevision,
+          workspaceRevision: applyResult.workspaceRevision,
+          reproduction: input.reproduction,
+          commandResult
+        })
+
+        const result: ImplementationResult = {
+          summary: plan.summary,
+          patch: plan.patch,
+          changedFiles: plan.changedFiles,
+          risks: plan.risks,
+          sourceWorkspaceRevision,
+          workspaceRevision: applyResult.workspaceRevision,
+          commandResult,
+          artifacts
+        }
+
+        await this.traceRecorder.record({
+          runId: input.context.context.runId,
+          step: implementerStep,
+          agent: AgentRole.implementer,
+          workspaceRevision: result.workspaceRevision,
+          type: TraceEventType.agent_result,
+          promptVersion: prompt.id,
+          output: {
+            summary: result.summary,
+            changedFiles: result.changedFiles,
+            risks: result.risks,
+            implementationArtifact: result.artifacts.implementation,
+            patchArtifact: result.artifacts.patch,
+            commandArtifact: result.artifacts.command
+          }
+        })
+
+        logger.info('Implementation completed', {
+          changedFiles: result.changedFiles,
+          commandExecutionId: commandResult.executionId
+        })
+
+        patchApplied = false
+
+        return result
+      } catch (error) {
+        if (patchApplied) {
+          try {
+            await repositoryTools.revertPatch(plan.patch)
+
+            logger.info('Reverted failed implementation patch', {
+              changedFiles: plan.changedFiles
+            })
+          } catch (rollbackError) {
+            logger.error('Failed to revert implementation patch', {
+              rollbackError
+            })
+
+            throw new ImplementerError(
+              'Implementation failed and rollback also failed',
+              ImplementerErrorCode.patch_application_failed,
+              {
+                retryable: false,
+                cause: rollbackError
+              }
+            )
+          }
+        }
+
+        throw error
+      }
     } catch (error) {
       await this.recordFailure(input, promptVersion, error, logger)
 

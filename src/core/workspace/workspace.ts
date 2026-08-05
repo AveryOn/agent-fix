@@ -61,6 +61,8 @@ export interface RepositoryTools {
 
   applyPatch(patch: string): Promise<ApplyPatchResult>
 
+  revertPatch(patch: string): Promise<void>
+
   getDiff(): Promise<string>
 
   getChangedFiles(): Promise<readonly string[]>
