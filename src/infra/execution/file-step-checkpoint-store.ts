@@ -17,16 +17,38 @@ export class FileStepCheckpointStore implements StepCheckpointStore {
     this.runsRoot = path.resolve(runsRoot)
   }
 
-  async load<T>(executionId: string): Promise<StepCheckpoint<T> | null> {
+  async load<T>(
+    runId: string,
+    executionId: string
+  ): Promise<StepCheckpoint<T> | null> {
+    assertValidIdentifier(runId)
     assertValidIdentifier(executionId)
 
-    const matches = await this.findCheckpoint(executionId)
+    const filePath = path.join(
+      this.runsRoot,
+      runId,
+      'checkpoints',
+      `${executionId}.json`
+    )
 
-    if (matches === null) {
+    const content = await readFile(filePath, 'utf8').catch(
+      (error: unknown) => {
+        if (
+          typeof error === 'object' &&
+          error !== null &&
+          'code' in error &&
+          error.code === 'ENOENT'
+        ) {
+          return null
+        }
+
+        throw error
+      }
+    )
+
+    if (content === null) {
       return null
     }
-
-    const content = await readFile(matches, 'utf8')
 
     return JSON.parse(content) as StepCheckpoint<T>
   }
