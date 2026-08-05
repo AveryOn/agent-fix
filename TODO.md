@@ -543,5 +543,5 @@ Recording structure:
 - [x] `[160]` run one complete live OpenAI workflow
 - [x] `[161]` verify one implementation retry followed by success
 - [x] `[162]` verify one hallucinated or forbidden change is blocked
-- [ ] `[163]` verify traces, context revisions, token usage, cost, latency, and monitoring metrics
+- [x] `[163]` verify traces, context revisions, token usage, cost, latency, and monitoring metrics
 - [ ] `[164]` verify Docker execution and prepare the final demonstration run
