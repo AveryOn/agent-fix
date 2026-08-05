@@ -204,7 +204,7 @@ export interface ReproductionArtifactStore {
 export interface ReproductionResult {
   readonly summary: string
   readonly patch: string
-  readonly testFiles: readonly string[]
+  readonly testFiles: string[]
   readonly expectedFailureMarker: string
   readonly sourceWorkspaceRevision: string
   readonly workspaceRevision: string
