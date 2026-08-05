@@ -11,7 +11,14 @@ import path from 'node:path'
 
 const validRunIdPattern = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/
 
-const runDirectories = ['workspace', 'commands', 'agents', 'patches']
+const runDirectories = [
+  'workspace',
+  'commands',
+  'agents',
+  'patches',
+  'checkpoints',
+  'final'
+]
 
 export class FileRunStore implements RunStore {
   private readonly runsRoot: string
