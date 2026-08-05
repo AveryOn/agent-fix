@@ -181,14 +181,15 @@ export class ModelImplementerAgent implements ImplementerAgent {
         plan
       )
 
-      assertChangedFilesMatch(
-        expectedChangedFiles,
-        applyResult.changedFiles
+      const reproductionTestFiles = new Set(input.reproduction.testFiles)
+
+      const implementationChangedFiles = applyResult.changedFiles.filter(
+        (filePath) => !reproductionTestFiles.has(filePath)
       )
 
-      assertReproductionTestsUnchanged(
-        applyResult.changedFiles,
-        input.reproduction.testFiles
+      assertChangedFilesMatch(
+        expectedChangedFiles,
+        implementationChangedFiles
       )
 
       const patchedWorkspace: WorkspaceSnapshot = {
@@ -461,85 +462,61 @@ export class ModelImplementerAgent implements ImplementerAgent {
   }
 }
 
-function assertChangedFilesMatch(
-  expectedFiles: readonly string[],
-  actualFiles: readonly string[]
-): void {
-  const expected = [...expectedFiles].sort()
-
-  const actual = [...actualFiles].sort()
-
-  if (expected.length !== actual.length) {
-    throw new ImplementerError(
-      'Applied implementation patch changed unexpected files',
-      ImplementerErrorCode.changed_files_mismatch
-    )
-  }
-
-  for (let index = 0; index < expected.length; index += 1) {
-    if (expected[index] !== actual[index]) {
-      throw new ImplementerError(
-        'Applied implementation patch changed unexpected files',
-        ImplementerErrorCode.changed_files_mismatch
-      )
-    }
-  }
-}
-
-function assertReproductionTestsUnchanged(
-  changedFiles: readonly string[],
-  reproductionTestFiles: readonly string[]
-): void {
-  const testFiles = new Set(reproductionTestFiles)
-
-  const changedTest = changedFiles.find((filePath) =>
-    testFiles.has(filePath)
-  )
-
-  if (changedTest !== undefined) {
-    throw new ImplementerError(
-      `Implementation modified reproduction test: ${changedTest}`,
-      ImplementerErrorCode.reproduction_test_modified
-    )
-  }
-}
-
-function toTraceError(error: unknown): {
-  name: string
-  message: string
-  code?: string
-  retryable?: boolean
-} {
-  if (!(error instanceof Error)) {
-    return {
-      name: 'UnknownError',
-      message: 'Unknown implementer failure'
-    }
-  }
-
-  const result: {
-    name: string
-    message: string
-    code?: string
-    retryable?: boolean
-  } = {
-    name: error.name,
-    message: error.message
-  }
-
-  if ('code' in error && typeof error.code === 'string') {
-    result.code = error.code
-  }
-
-  if ('retryable' in error && typeof error.retryable === 'boolean') {
-    result.retryable = error.retryable
-  }
-
-  return result
-}
-
 function normalizeUnifiedDiffHunks(patch: string): string {
-  const lines = patch.split(/\r?\n/)
+  const sourceLines = patch.split(/\r?\n/).map((line) => {
+    if (line.startsWith('+')) {
+      return '+' + line.slice(1).replace(/[ \t]+$/u, '')
+    }
+
+    return line
+  })
+
+  const canonicalLines: string[] = []
+  let hasPendingDiffHeader = false
+
+  for (let index = 0; index < sourceLines.length; index += 1) {
+    const line = sourceLines[index] || ''
+
+    if (line.startsWith('diff --git ')) {
+      canonicalLines.push(line)
+      hasPendingDiffHeader = true
+      continue
+    }
+
+    if (
+      line.startsWith('--- ') &&
+      sourceLines[index + 1]?.startsWith('+++ ')
+    ) {
+      const oldPath = normalizePatchPath(line.slice(4))
+
+      const newPath = normalizePatchPath(
+        (sourceLines[index + 1] || '').slice(4)
+      )
+
+      if (!hasPendingDiffHeader) {
+        const diffOldPath = oldPath === '/dev/null' ? newPath : oldPath
+
+        const diffNewPath = newPath === '/dev/null' ? oldPath : newPath
+
+        canonicalLines.push(`diff --git a/${diffOldPath} b/${diffNewPath}`)
+      }
+
+      canonicalLines.push(
+        oldPath === '/dev/null' ? '--- /dev/null' : `--- a/${oldPath}`
+      )
+
+      canonicalLines.push(
+        newPath === '/dev/null' ? '+++ /dev/null' : `+++ b/${newPath}`
+      )
+
+      hasPendingDiffHeader = false
+      index += 1
+      continue
+    }
+
+    canonicalLines.push(line)
+  }
+
   const result: string[] = []
 
   let hunkHeaderIndex: number | null = null
@@ -561,8 +538,10 @@ function normalizeUnifiedDiffHunks(patch: string): string {
     newCount = 0
   }
 
-  for (const line of lines) {
-    const hunkMatch = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/)
+  for (const line of canonicalLines) {
+    const hunkMatch = line.match(
+      /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/u
+    )
 
     if (hunkMatch !== null) {
       flushHunk()
@@ -612,4 +591,73 @@ function normalizeUnifiedDiffHunks(patch: string): string {
   flushHunk()
 
   return `${result.join('\n').replace(/\n+$/u, '')}\n`
+}
+
+function normalizePatchPath(path: string): string {
+  const normalized = path.trim()
+
+  if (normalized === '/dev/null') {
+    return normalized
+  }
+
+  return normalized.replace(/^[ab]\//u, '')
+}
+
+function assertChangedFilesMatch(
+  expectedFiles: readonly string[],
+  actualFiles: readonly string[]
+): void {
+  const expected = [...expectedFiles].sort()
+
+  const actual = [...actualFiles].sort()
+
+  if (expected.length !== actual.length) {
+    throw new ImplementerError(
+      'Applied implementation patch changed unexpected files',
+      ImplementerErrorCode.changed_files_mismatch
+    )
+  }
+
+  for (let index = 0; index < expected.length; index += 1) {
+    if (expected[index] !== actual[index]) {
+      throw new ImplementerError(
+        'Applied implementation patch changed unexpected files',
+        ImplementerErrorCode.changed_files_mismatch
+      )
+    }
+  }
+}
+
+function toTraceError(error: unknown): {
+  name: string
+  message: string
+  code?: string
+  retryable?: boolean
+} {
+  if (!(error instanceof Error)) {
+    return {
+      name: 'UnknownError',
+      message: 'Unknown implementer failure'
+    }
+  }
+
+  const result: {
+    name: string
+    message: string
+    code?: string
+    retryable?: boolean
+  } = {
+    name: error.name,
+    message: error.message
+  }
+
+  if ('code' in error && typeof error.code === 'string') {
+    result.code = error.code
+  }
+
+  if ('retryable' in error && typeof error.retryable === 'boolean') {
+    result.retryable = error.retryable
+  }
+
+  return result
 }

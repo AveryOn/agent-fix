@@ -71,7 +71,15 @@ export class ReproductionGate {
 
     if (!output.includes(expectedFailureMarker)) {
       throw new ReproducerError(
-        'Reproduction test failed for an unrelated reason',
+        [
+          'Reproduction test failed but the command output does not contain the expected marker',
+          `Required marker: ${expectedFailureMarker}`,
+          'The marker must be emitted by the failing behavioral assertion',
+          'Do not place the marker in a comment',
+          'Do not compare a domain value with the marker',
+          'Use Vitest assertion message syntax',
+          `Example: expect(paymentService.getPayments(), '${expectedFailureMarker}').toHaveLength(1)`
+        ].join('. '),
         ReproducerErrorCode.unrelated_test_failure,
         {
           retryable: true

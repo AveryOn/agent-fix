@@ -94,6 +94,49 @@ export class ReproductionPatchValidator {
       )
     }
 
+    const escapedMarker = escapeRegExp(plan.expectedFailureMarker)
+
+    const markerInCommentPattern = new RegExp(
+      `//[^\\n]*${escapedMarker}`,
+      'u'
+    )
+
+    if (markerInCommentPattern.test(addedContent)) {
+      throw new ReproducerError(
+        [
+          'Expected failure marker is present only in a comment',
+          `Required marker: ${plan.expectedFailureMarker}`,
+          'Use the marker as the assertion message',
+          'Example: expect(value, marker).toHaveLength(1)'
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+
+    const markerAsExpectedValuePattern = new RegExp(
+      `\\.to(?:Be|Equal)\\(\\s*['"\`]${escapedMarker}['"\`]\\s*\\)`,
+      'u'
+    )
+
+    if (markerAsExpectedValuePattern.test(addedContent)) {
+      throw new ReproducerError(
+        [
+          'Expected failure marker is used as an asserted domain value',
+          `Required marker: ${plan.expectedFailureMarker}`,
+          'Do not compare providerEventId or another value with the marker',
+          'Use the marker as the assertion message',
+          'Example: expect(payments, marker).toHaveLength(1)'
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+
     return changedFiles
   }
 
@@ -319,4 +362,8 @@ function isSafeRelativePath(filePath: string): boolean {
       (segment) =>
         segment.length > 0 && segment !== '.' && segment !== '..'
     )
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')
 }
