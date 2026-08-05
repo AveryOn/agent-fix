@@ -88,7 +88,22 @@ describeDocker('DockerProcessRunner smoke test', () => {
     ])
 
     for (const result of results) {
-      expect(result.succeeded).toBe(true)
+      expect(
+        result.succeeded,
+        [
+          `Docker operation failed: ${result.operation}`,
+          `Exit code: ${String(result.exitCode)}`,
+          `Signal: ${String(result.signal)}`,
+          `Timed out: ${String(result.timedOut)}`,
+          '',
+          'STDOUT:',
+          result.stdout,
+          '',
+          'STDERR:',
+          result.stderr
+        ].join('\n')
+      ).toBe(true)
+
       expect(result.exitCode).toBe(0)
       expect(result.timedOut).toBe(false)
       expect(result.command.executable).toBe('docker')
