@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import type {
+  PipelineExecutionInput,
+  PipelineExecutionResult,
+  PipelineOrchestrator
+} from '~/application/orchestrator'
 import type { CliOutput } from '~/core/cli'
 import type { HumanApprovalPrompt, HumanApprovalRequest } from '~/core/run'
 
@@ -10,7 +15,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { RunCommandHandler, RunService } from '~/application/run'
 import { LogLevel } from '~/core/logging'
-import { HumanApprovalDecision, RunStatus } from '~/core/run'
+import { HumanApprovalDecision, RunStatus, RunStepName } from '~/core/run'
 import { TraceRecorder } from '~/core/trace'
 import { GitTargetRepositoryValidator } from '~/infra/cli'
 import { createPinoLogger } from '~/infra/logging'
@@ -18,11 +23,27 @@ import { FileRunStore } from '~/infra/run'
 import { JsonlTraceWriter } from '~/infra/trace'
 import { GitWorkspaceManager } from '~/infra/workspace'
 
-class ApprovedPrompt implements HumanApprovalPrompt {
-  requestApproval(
-    _request: HumanApprovalRequest
-  ): Promise<HumanApprovalDecision> {
-    return Promise.resolve(HumanApprovalDecision.approved)
+class ApprovedPipelineOrchestrator {
+  constructor(private readonly runService: RunService) {}
+
+  async execute(
+    input: PipelineExecutionInput
+  ): Promise<PipelineExecutionResult> {
+    let state = await this.runService.startStep(
+      input.state,
+      RunStepName.human_approval,
+      RunStatus.awaiting_approval
+    )
+
+    state = await this.runService.recordApproval(
+      state,
+      HumanApprovalDecision.approved
+    )
+
+    return {
+      state,
+      decision: HumanApprovalDecision.approved
+    }
   }
 }
 
@@ -98,11 +119,15 @@ describe('RunCommandHandler', () => {
         runsRoot
       })
 
+      const pipelineOrchestrator = new ApprovedPipelineOrchestrator(
+        runService
+      ) as unknown as PipelineOrchestrator
+
       const handler = new RunCommandHandler(
         runService,
         new GitTargetRepositoryValidator(),
         workspaceManager,
-        new ApprovedPrompt(),
+        pipelineOrchestrator,
         output,
         createPinoLogger({
           level: LogLevel.silent,
