@@ -451,16 +451,16 @@ Added an evaluation case that fails if the reproducer creates
 a test that already passes.
 ```
 
-## 18. Monitoring Module
+## 18. ~~Monitoring Module~~
 
-- [ ] `[127]` aggregate metrics from completed traces
-- [ ] `[128]` calculate run success and failure rates
-- [ ] `[129]` calculate first-attempt validation pass rate
-- [ ] `[130]` calculate retry rate and average attempts per successful run
-- [ ] `[131]` calculate token usage and estimated cost per successful run
-- [ ] `[132]` calculate average, p50, and p95 execution latency
-- [ ] `[133]` calculate evaluation regression and validation rejection rates
-- [ ] `[134]` generate a CLI monitoring summary
+- [x] `[127]` aggregate metrics from completed traces
+- [x] `[128]` calculate run success and failure rates
+- [x] `[129]` calculate first-attempt validation pass rate
+- [x] `[130]` calculate retry rate and average attempts per successful run
+- [x] `[131]` calculate token usage and estimated cost per successful run
+- [x] `[132]` calculate average, p50, and p95 execution latency
+- [x] `[133]` calculate evaluation regression and validation rejection rates
+- [x] `[134]` generate a CLI monitoring summary
 
 Primary degradation metric:
 
