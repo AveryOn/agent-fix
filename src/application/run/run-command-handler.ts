@@ -1,8 +1,8 @@
+import type { PipelineOrchestrator } from '~/application/orchestrator'
 import type { RunService } from '~/application/run/run-service'
 import type { CliOutput } from '~/core/cli'
 import type { Logger } from '~/core/logging'
 import type {
-  HumanApprovalPrompt,
   RunState,
   RunValidationReport,
   TargetRepositoryValidator
@@ -23,7 +23,7 @@ export class RunCommandHandler {
     private readonly runService: RunService,
     private readonly repositoryValidator: TargetRepositoryValidator,
     private readonly workspaceManager: WorkspaceManager,
-    private readonly approvalPrompt: HumanApprovalPrompt,
+    private readonly pipelineOrchestrator: PipelineOrchestrator,
     private readonly output: CliOutput,
     private readonly logger: Logger,
     private readonly traceRecorder: TraceRecorder
@@ -38,6 +38,7 @@ export class RunCommandHandler {
     })
 
     this.output.writeLine(`Run created: ${state.runId}`)
+
     this.output.writeLine(`Run directory: ${state.runDirectory}`)
 
     try {
@@ -65,29 +66,7 @@ export class RunCommandHandler {
       this.printValidation(validation)
 
       if (!validation.passed) {
-        const validationError = new Error(
-          'Target repository validation failed'
-        )
-
-        state = await this.runService.failStep(state, validationError)
-
-        await this.traceRecorder.record({
-          runId: state.runId,
-          step: RunStepName.validate_target,
-          type: TraceEventType.failure,
-          error: {
-            name: validationError.name,
-            message: validationError.message
-          }
-        })
-
-        logger.warn('Target repository validation failed', {
-          repositoryPath: state.repositoryPath
-        })
-
-        this.output.writeError('Run stopped: target repository is invalid')
-
-        return 1
+        throw new Error('Target repository validation failed')
       }
 
       state = await this.runService.completeStep(
@@ -128,50 +107,29 @@ export class RunCommandHandler {
 
       this.output.writeLine(`Base commit: ${workspace.baseCommit}`)
 
-      this.output.writeLine(
-        `Workspace revision: ${workspace.workspaceRevision}`
-      )
-
-      state = await this.runService.startStep(
+      const result = await this.pipelineOrchestrator.execute({
         state,
-        RunStepName.human_approval,
-        RunStatus.awaiting_approval
-      )
-
-      this.printProgress(state, 'Waiting for human approval')
-
-      const decision = await this.approvalPrompt.requestApproval({
-        runId: state.runId,
-        repositoryPath: state.repositoryPath,
-        task: state.task,
-        validation
+        workspace
       })
 
-      state = await this.runService.recordApproval(state, decision)
-
-      if (decision === HumanApprovalDecision.approved) {
-        logger.info('Run approved by human')
-
-        this.output.writeLine(`Run ${state.runId} approved`)
-      } else {
-        logger.info('Run rejected by human')
-
-        this.output.writeLine(`Run ${state.runId} rejected`)
-      }
+      this.output.writeLine(
+        result.decision === HumanApprovalDecision.approved
+          ? `Run ${state.runId} completed`
+          : `Run ${state.runId} rejected and rolled back`
+      )
 
       return 0
     } catch (error) {
-      const failedStep = state.currentStep ?? 'run-command'
-
       if (state.currentStep !== null) {
         state = await this.runService.failStep(state, error)
       }
 
       await this.traceRecorder.record({
         runId: state.runId,
-        step: failedStep,
+        step: 'run-command',
         type: TraceEventType.failure,
         error: toTraceError(error),
+
         ...(state.workspaceRevision === null
           ? {}
           : {
@@ -183,7 +141,11 @@ export class RunCommandHandler {
         error
       })
 
-      throw error
+      this.output.writeError(
+        error instanceof Error ? error.message : 'Unknown run failure'
+      )
+
+      return 1
     }
   }
 
