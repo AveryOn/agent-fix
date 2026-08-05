@@ -540,7 +540,7 @@ Recording structure:
 - [x] `[157]` run critical validator and context-management tests
 - [x] `[158]` run the complete pipeline integration test
 - [x] `[159]` run all evaluation cases and compare them with the baseline
-- [ ] `[160]` run one complete live OpenAI workflow
+- [x] `[160]` run one complete live OpenAI workflow
 - [x] `[161]` verify one implementation retry followed by success
 - [x] `[162]` verify one hallucinated or forbidden change is blocked
 - [ ] `[163]` verify traces, context revisions, token usage, cost, latency, and monitoring metrics
