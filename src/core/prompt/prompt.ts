@@ -39,7 +39,7 @@ export interface PromptEvaluationMetadata {
 export const defaultPromptVersions: PromptVersionSelection = Object.freeze(
   {
     [AgentRole.investigator]: 'v1',
-    [AgentRole.reproducer]: 'v3',
+    [AgentRole.reproducer]: 'v4',
     [AgentRole.implementer]: 'v1',
     [AgentRole.reviewer]: 'v1'
   }

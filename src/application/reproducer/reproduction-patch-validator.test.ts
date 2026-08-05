@@ -9,11 +9,11 @@ const workspaceRevision = 'revision-001'
 const marker = 'AGENT_FIX_REPRODUCTION: expected one payment'
 
 describe('ReproductionPatchValidator', () => {
-  it('accepts a test-only additive patch', () => {
+  it('accepts creation of one new test file', () => {
     const validator = new ReproductionPatchValidator()
 
     expect(validator.validate(createPlan(), workspaceRevision)).toEqual([
-      'tests/payment-webhook.test.ts'
+      'tests/payment-duplicate-webhook.test.ts'
     ])
   })
 
@@ -213,6 +213,35 @@ describe('ReproductionPatchValidator', () => {
       })
     )
   })
+
+  it('rejects additive changes to an existing test file', () => {
+    const validator = new ReproductionPatchValidator()
+
+    expect(() =>
+      validator.validate(
+        createPlan({
+          testFiles: ['tests/payment-webhook.test.ts'],
+          patch: [
+            'diff --git a/tests/payment-webhook.test.ts b/tests/payment-webhook.test.ts',
+            'index 1111111..2222222 100644',
+            '--- a/tests/payment-webhook.test.ts',
+            '+++ b/tests/payment-webhook.test.ts',
+            '@@ -1,1 +1,5 @@',
+            ' describe("webhook", () => {})',
+            '+expect(',
+            '+  payments,',
+            `+  '${marker}'`,
+            '+).toHaveLength(1)'
+          ].join('\n')
+        }),
+        workspaceRevision
+      )
+    ).toThrowError(
+      expect.objectContaining({
+        code: ReproducerErrorCode.invalid_patch
+      })
+    )
+  })
 })
 
 function createPlan(
@@ -221,23 +250,30 @@ function createPlan(
   return {
     summary: 'Add a regression test for duplicate webhook delivery',
 
-    testFiles: ['tests/payment-webhook.test.ts'],
+    testFiles: ['tests/payment-duplicate-webhook.test.ts'],
 
     expectedFailureMarker: marker,
 
     workspaceRevision,
 
     patch: [
-      'diff --git a/tests/payment-webhook.test.ts b/tests/payment-webhook.test.ts',
-      'index 1111111..2222222 100644',
-      '--- a/tests/payment-webhook.test.ts',
-      '+++ b/tests/payment-webhook.test.ts',
-      '@@ -1,1 +1,5 @@',
-      ' describe("webhook", () => {})',
-      '+expect(',
-      '+  payments,',
-      `+  '${marker}'`,
-      '+).toHaveLength(1)'
+      'diff --git a/tests/payment-duplicate-webhook.test.ts b/tests/payment-duplicate-webhook.test.ts',
+      'new file mode 100644',
+      '--- /dev/null',
+      '+++ b/tests/payment-duplicate-webhook.test.ts',
+      '@@ -0,0 +1,12 @@',
+      "+import { describe, expect, it } from 'vitest'",
+      '+',
+      "+describe('duplicate webhook', () => {",
+      "+  it('creates one payment for duplicate delivery', () => {",
+      "+    const payments = [{ id: 'payment-1' }]",
+      '+',
+      '+    expect(',
+      '+      payments,',
+      `+      '${marker}'`,
+      '+    ).toHaveLength(1)',
+      '+  })',
+      '+})'
     ].join('\n'),
 
     ...overrides

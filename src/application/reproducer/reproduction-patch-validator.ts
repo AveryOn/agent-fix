@@ -73,6 +73,8 @@ export class ReproductionPatchValidator {
       }
     }
 
+    assertSingleNewTestFilePatch(plan.patch)
+
     assertOnlyAdditions(plan.patch)
 
     assertSameFiles(changedFiles, plan.testFiles)
@@ -511,4 +513,101 @@ function isSafeRelativePath(filePath: string): boolean {
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')
+}
+
+function assertSingleNewTestFilePatch(patch: string): void {
+  const fileSections = patch
+    .split(/(?=^diff --git )/gmu)
+    .filter((section) => section.startsWith('diff --git '))
+
+  if (fileSections.length !== 1) {
+    throw new ReproducerError(
+      [
+        'Reproduction patch must create exactly one new test file',
+        `Found file sections: ${fileSections.length}`
+      ].join('. '),
+      ReproducerErrorCode.invalid_patch,
+      {
+        retryable: true
+      }
+    )
+  }
+
+  const section = fileSections[0]
+
+  if (section === undefined) {
+    throw new ReproducerError(
+      'Reproduction patch does not contain a file section',
+      ReproducerErrorCode.invalid_patch,
+      {
+        retryable: true
+      }
+    )
+  }
+
+  const headerMatch = section.match(/^diff --git a\/(.+) b\/(.+)$/mu)
+
+  const sourcePath = headerMatch?.[1]
+  const targetPath = headerMatch?.[2]
+
+  if (
+    sourcePath === undefined ||
+    targetPath === undefined ||
+    sourcePath !== targetPath
+  ) {
+    throw new ReproducerError(
+      'Reproduction patch contains an invalid new-file diff header',
+      ReproducerErrorCode.invalid_patch,
+      {
+        retryable: true
+      }
+    )
+  }
+
+  const requiredLines = [
+    'new file mode 100644',
+    '--- /dev/null',
+    `+++ b/${targetPath}`
+  ]
+
+  for (const requiredLine of requiredLines) {
+    if (!section.includes(requiredLine)) {
+      throw new ReproducerError(
+        [
+          'Reproduction patch must create a new test file',
+          `Missing line: ${requiredLine}`,
+          'Do not modify an existing test file'
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+  }
+
+  const hunkHeaders = section.match(/^@@ .+ @@.*$/gmu)
+
+  if (hunkHeaders === null || hunkHeaders.length !== 1) {
+    throw new ReproducerError(
+      'New reproduction test patch must contain exactly one hunk',
+      ReproducerErrorCode.invalid_patch,
+      {
+        retryable: true
+      }
+    )
+  }
+
+  if (!/^@@ -0,0 \+1,\d+ @@/u.test(hunkHeaders[0] ?? '')) {
+    throw new ReproducerError(
+      [
+        'New test file must use a new-file hunk',
+        'Expected format: @@ -0,0 +1,<line-count> @@'
+      ].join('. '),
+      ReproducerErrorCode.invalid_patch,
+      {
+        retryable: true
+      }
+    )
+  }
 }

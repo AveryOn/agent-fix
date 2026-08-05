@@ -7,7 +7,7 @@ import { FileEvaluationStore } from '../src/infra/evaluation/file-evaluation-sto
 const promptVersions = {
   investigator: 'investigator-v1',
 
-  reproducer: 'reproducer-v3',
+  reproducer: 'reproducer-v4',
 
   implementer: 'implementer-v1',
 
