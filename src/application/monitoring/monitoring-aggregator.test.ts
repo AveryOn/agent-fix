@@ -34,10 +34,12 @@ describe('MonitoringAggregator', () => {
 
             createEvent({
               runId: 'run-001',
-              step: 'mechanical_validation',
+              step: 'validation',
               type: TraceEventType.validation_result,
               output: {
-                passed: true
+                report: {
+                  passed: true
+                }
               }
             })
           ]
@@ -58,7 +60,7 @@ describe('MonitoringAggregator', () => {
 
             createEvent({
               runId: 'run-002',
-              step: 'mechanical_validation',
+              step: 'validation',
               type: TraceEventType.validation_result,
               output: {
                 report: {

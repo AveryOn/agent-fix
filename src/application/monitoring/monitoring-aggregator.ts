@@ -8,7 +8,7 @@ import type { TraceEvent } from '~/core/trace'
 import { MonitoringTerminalStatus } from '~/core/monitoring'
 import { TraceEventType } from '~/core/trace'
 
-const mechanicalValidationStep = 'mechanical_validation'
+const validationTraceStep = 'validation'
 
 export class MonitoringAggregator {
   aggregate(input: MonitoringInput): MonitoringSummary {
@@ -145,7 +145,7 @@ function hasMechanicalValidation(run: MonitoringRunRecord): boolean {
   return run.events.some(
     (event) =>
       event.type === TraceEventType.validation_result &&
-      event.step === mechanicalValidationStep
+      event.step === validationTraceStep
   )
 }
 
@@ -167,7 +167,7 @@ function passedMechanicalValidationOnFirstAttempt(
   return !run.events.some(
     (candidate) =>
       candidate.type === TraceEventType.retry &&
-      candidate.step === mechanicalValidationStep &&
+      candidate.step === validationTraceStep &&
       candidate.timestamp <= event.timestamp
   )
 }
@@ -179,7 +179,7 @@ function getFirstMechanicalValidationEvent(
     run.events.find(
       (event) =>
         event.type === TraceEventType.validation_result &&
-        event.step === mechanicalValidationStep
+        event.step === validationTraceStep
     ) ?? null
   )
 }
@@ -190,7 +190,7 @@ function getLastMechanicalValidationEvent(
   const matchingEvents = run.events.filter(
     (event) =>
       event.type === TraceEventType.validation_result &&
-      event.step === mechanicalValidationStep
+      event.step === validationTraceStep
   )
 
   return matchingEvents.at(-1) ?? null
