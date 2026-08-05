@@ -25,7 +25,15 @@ export const environmentSchema = z.object({
 
   LOG_PRETTY: booleanEnvironmentVariableSchema.default(false),
 
-  DOCKER_ENABLED: booleanEnvironmentVariableSchema.default(false)
+  DOCKER_ENABLED: booleanEnvironmentVariableSchema.default(false),
+
+  DOCKER_IMAGE: z.string().min(1).default('agent-fix-sandbox:local'),
+
+  DOCKER_MEMORY_MB: z.coerce.number().int().min(128).default(512),
+
+  DOCKER_CPUS: z.coerce.number().positive().max(8).default(1),
+
+  DOCKER_PIDS_LIMIT: z.coerce.number().int().min(16).max(4096).default(256)
 })
 
 export type Environment = z.infer<typeof environmentSchema>
