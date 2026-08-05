@@ -291,23 +291,23 @@ Validation order:
 
 ```text
 Agent Output Schema
-  ↓
+  |
 Evidence References
-  ↓
+  |
 Patch Application
-  ↓
+  |
 Reproduction Gate
-  ↓
+  |
 Full Test Suite
-  ↓
+  |
 Typecheck
-  ↓
+  |
 Lint
-  ↓
+  |
 Build
-  ↓
+  |
 Changed File Policy
-  ↓
+  |
 Reviewer Agent
 ```
 
@@ -326,15 +326,15 @@ Retry flow:
 
 ```text
 Validation Failure
-  ↓
+  |
 Rollback Failed Patch
-  ↓
+  |
 Attach Validation Feedback
-  ↓
+  |
 Retry Agent
-  ↓
+  |
 Maximum Attempts Reached
-  ↓
+  |
 Fail Run or Escalate to Human
 ```
 
@@ -356,23 +356,23 @@ Pipeline:
 
 ```text
 User Task
-  ↓
+  |
 Investigator
-  ↓
+  |
 Evidence Validation
-  ↓
+  |
 Reproducer
-  ↓
+  |
 Failing-Test Gate
-  ↓
+  |
 Implementer
-  ↓
+  |
 Mechanical Validation
-  ↓
+  |
 Reviewer
-  ↓
+  |
 Human Approval
-  ↓
+  |
 Final Diff
 ```
 
@@ -423,17 +423,17 @@ Self-improvement loop:
 
 ```text
 Trace Failure
-  ↓
+  |
 Classify Failure Reason
-  ↓
+  |
 Update Prompt or Validation Rule
-  ↓
+  |
 Create New Prompt Version
-  ↓
+  |
 Run Evaluation Suite
-  ↓
+  |
 Compare with Baseline
-  ↓
+  |
 Accept or Reject Change
 ```
 
@@ -496,27 +496,27 @@ Docker execution boundary:
 
 ```text
 Agent
-  ↓
+  |
 Allowlisted Process Operation
-  ↓
+  |
 Docker Container
-  ↓
+  |
 Isolated Run Workspace
 ```
 
-## 20. Documentation and Recording Preparation
+## 20. ~~Documentation and Recording Preparation~~
 
-- [ ] `[144]` document the architecture and pipeline
-- [ ] `[145]` document why this agent structure was selected
-- [ ] `[146]` document rejected alternatives and tradeoffs
-- [ ] `[147]` document context boundaries and stale-context handling
-- [ ] `[148]` document mechanical validation and anti-hallucination rules
-- [ ] `[149]` document retry, rollback, resume, and idempotency behavior
-- [ ] `[150]` document the self-improvement and evaluation workflow
-- [ ] `[151]` document monitoring metrics and estimated costs
-- [ ] `[152]` document CLI and Docker usage
-- [ ] `[153]` add example trace, validation report, metrics report, and final diff
-- [ ] `[154]` prepare the successful run, failure run, missed-failure story, and 10–15 minute recording script
+- [x] `[144]` document the architecture and pipeline
+- [x] `[145]` document why this agent structure was selected
+- [x] `[146]` document rejected alternatives and tradeoffs
+- [x] `[147]` document context boundaries and stale-context handling
+- [x] `[148]` document mechanical validation and anti-hallucination rules
+- [x] `[149]` document retry, rollback, resume, and idempotency behavior
+- [x] `[150]` document the self-improvement and evaluation workflow
+- [x] `[151]` document monitoring metrics and estimated costs
+- [x] `[152]` document CLI and Docker usage
+- [x] `[153]` add example trace, validation report, metrics report, and final diff
+- [x] `[154]` prepare the successful run, failure run, missed-failure story, and 10–15 minute recording script
 
 Recording structure:
 

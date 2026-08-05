@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "runId": "run-example-success",
+  "workspaceRevision": "sha256:implementation-revision",
+  "generatedAt": "2026-08-05T12:00:12.000Z",
+  "passed": true,
+  "changedFiles": [
+    "src/payment.service.ts",
+    "src/webhook.handler.ts",
+    "tests/payment-webhook.test.ts"
+  ],
+  "forbiddenFiles": [],
+  "checks": [
+    {
+      "id": "agent_output_schema",
+      "status": "passed",
+      "required": true,
+      "message": "All agent outputs match their strict Zod schemas"
+    },
+    {
+      "id": "evidence_references",
+      "status": "passed",
+      "required": true,
+      "message": "All file, symbol, and evidence references are grounded"
+    },
+    {
+      "id": "patch_application",
+      "status": "passed",
+      "required": true,
+      "message": "Reproduction and implementation patches applied to the expected workspace revisions"
+    },
+    {
+      "id": "reproduction_failure",
+      "status": "passed",
+      "required": true,
+      "message": "The reproduction test failed before the fix with the expected marker",
+      "artifact": {
+        "id": "command-reproduction-before",
+        "type": "command.result",
+        "relativePath": "commands/command-reproduction-before.json"
+      }
+    },
+    {
+      "id": "reproduction_success",
+      "status": "passed",
+      "required": true,
+      "message": "The reproduction test passed after the implementation",
+      "artifact": {
+        "id": "command-reproduction-after",
+        "type": "command.result",
+        "relativePath": "commands/command-reproduction-after.json"
+      }
+    },
+    {
+      "id": "full_test_suite",
+      "status": "passed",
+      "required": true,
+      "message": "The complete test suite passed",
+      "artifact": {
+        "id": "command-tests",
+        "type": "command.result",
+        "relativePath": "commands/command-tests.json"
+      }
+    },
+    {
+      "id": "typecheck",
+      "status": "passed",
+      "required": true,
+      "message": "TypeScript typecheck passed",
+      "artifact": {
+        "id": "command-typecheck",
+        "type": "command.result",
+        "relativePath": "commands/command-typecheck.json"
+      }
+    },
+    {
+      "id": "lint",
+      "status": "passed",
+      "required": true,
+      "message": "ESLint passed",
+      "artifact": {
+        "id": "command-lint",
+        "type": "command.result",
+        "relativePath": "commands/command-lint.json"
+      }
+    },
+    {
+      "id": "build",
+      "status": "passed",
+      "required": true,
+      "message": "The project build passed",
+      "artifact": {
+        "id": "command-build",
+        "type": "command.result",
+        "relativePath": "commands/command-build.json"
+      }
+    },
+    {
+      "id": "changed_file_policy",
+      "status": "passed",
+      "required": true,
+      "message": "All changed files are inside the allowed scope"
+    }
+  ]
+}
