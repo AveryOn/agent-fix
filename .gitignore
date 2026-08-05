@@ -4,6 +4,10 @@ coverage/
 evaluations/comparison.json
 evaluations/current.json
 
+fixtures/**/node_modules/
+fixtures/**/dist/
+fixtures/**/coverage/
+
 .runs/
 .runs-test/
 
