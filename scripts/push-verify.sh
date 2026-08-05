@@ -14,5 +14,8 @@ npm run lint
 echo "[VERIFY:BUILD]"
 npm run build
 
+echo "[VERIFY:EVALUATIONS]"
+npm run eval
+
 echo "[VERIFY:TESTS]"
 npm run test
