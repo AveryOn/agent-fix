@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "suiteId": "agent-fix-core-evaluation",
-  "generatedAt": "2026-08-05T12:20:59.794Z",
+  "generatedAt": "2026-08-05T12:22:37.651Z",
   "promptVersions": {
     "investigator": "investigator-v1",
     "reproducer": "reproducer-v2",
@@ -25,7 +25,7 @@
         "attempts": 1,
         "errorCode": null
       },
-      "durationMs": 0.3492100000000846
+      "durationMs": 0.26601599999997916
     },
     {
       "id": "hallucinated-file-reference",
@@ -43,7 +43,7 @@
         "attempts": 1,
         "errorCode": "hallucinated_file"
       },
-      "durationMs": 0.19091899999989437
+      "durationMs": 0.15902099999999564
     },
     {
       "id": "reproduction-test-already-passes",
@@ -61,7 +61,7 @@
         "attempts": 1,
         "errorCode": "test_already_passes"
       },
-      "durationMs": 0.2546869999999899
+      "durationMs": 0.18489499999998316
     },
     {
       "id": "typecheck-failure",
@@ -79,7 +79,7 @@
         "attempts": 1,
         "errorCode": "process_check_failed"
       },
-      "durationMs": 0.054952000000071166
+      "durationMs": 0.0377210000000332
     },
     {
       "id": "forbidden-file-modification",
@@ -97,7 +97,7 @@
         "attempts": 1,
         "errorCode": "changed_file_policy"
       },
-      "durationMs": 0.17326900000000478
+      "durationMs": 0.13691199999999526
     },
     {
       "id": "retry-then-success",
@@ -115,7 +115,7 @@
         "attempts": 2,
         "errorCode": null
       },
-      "durationMs": 0.42947000000003754
+      "durationMs": 0.2815879999999993
     }
   ],
   "summary": {
