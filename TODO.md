@@ -311,16 +311,16 @@ Changed File Policy
 Reviewer Agent
 ```
 
-## 14. Retry, Resume, and Failure Handling
+## 14. ~~Retry, Resume, and Failure Handling~~
 
-- [ ] `[092]` define retryable, non-retryable, and fatal errors
-- [ ] `[093]` implement structured output repair retry
-- [ ] `[094]` implement implementation retry with validation feedback
-- [ ] `[095]` enforce maximum attempt limits
-- [ ] `[096]` rollback failed patches before another attempt
-- [ ] `[097]` assign a deterministic execution identifier to every step
-- [ ] `[098]` save step input and output hashes
-- [ ] `[099]` resume from the last valid checkpoint and prevent duplicate patch application
+- [x] `[092]` define retryable, non-retryable, and fatal errors
+- [x] `[093]` implement structured output repair retry
+- [x] `[094]` implement implementation retry with validation feedback
+- [x] `[095]` enforce maximum attempt limits
+- [x] `[096]` rollback failed patches before another attempt
+- [x] `[097]` assign a deterministic execution identifier to every step
+- [x] `[098]` save step input and output hashes
+- [x] `[099]` resume from the last valid checkpoint and prevent duplicate patch application
 
 Retry flow:
 
