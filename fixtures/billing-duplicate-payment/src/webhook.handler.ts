@@ -1,6 +1,6 @@
 import type { Payment } from './payment.service.js'
 
-import { PaymentService } from './payment.service.js'
+import type { PaymentService } from './payment.service.js'
 
 export interface PaymentWebhook {
   readonly id: string
