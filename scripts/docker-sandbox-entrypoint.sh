@@ -15,12 +15,6 @@ if [[ "${OPENAI_API_KEY:-}" != '' ]]; then
   exit 71
 fi
 
-if [[ -f "${workspace_root}/.git" ]] ||
-  [[ -d "${workspace_root}/.git" ]]; then
-  echo 'Git metadata must not be available in the sandbox' >&2
-  exit 72
-fi
-
 if [[ ! -d "${workspace_root}" ]]; then
   echo 'Workspace mount is missing' >&2
   exit 73

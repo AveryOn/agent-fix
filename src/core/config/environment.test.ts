@@ -37,9 +37,9 @@ describe('parseEnvironment', () => {
       LOG_PRETTY: false,
       DOCKER_ENABLED: true,
       DOCKER_IMAGE: 'agent-fix-test:local',
-      DOCKER_MEMORY_MB: '768',
-      DOCKER_CPUS: '1.5',
-      DOCKER_PIDS_LIMIT: '128'
+      DOCKER_MEMORY_MB: 768,
+      DOCKER_CPUS: 1.5,
+      DOCKER_PIDS_LIMIT: 128
     })
   })
 

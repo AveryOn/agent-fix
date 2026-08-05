@@ -15,7 +15,7 @@ WORKDIR /opt/agent-fix
 
 COPY package.json package-lock.json ./
 
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts --include=dev
 
 WORKDIR /opt/fixture
 
@@ -23,7 +23,7 @@ COPY fixtures/billing-duplicate-payment/package.json \
   fixtures/billing-duplicate-payment/package-lock.json \
   ./
 
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts --include=dev
 
 COPY scripts/docker-sandbox-entrypoint.sh \
   /usr/local/bin/docker-sandbox-entrypoint

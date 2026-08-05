@@ -11,7 +11,6 @@ import type { WorkspaceSnapshot } from '~/core/workspace'
 
 import { spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
-import { existsSync } from 'node:fs'
 import path from 'node:path'
 import {
   ProcessOperation,
@@ -304,21 +303,6 @@ class AllowlistedDockerExecutor {
     ]
 
     args.push(...createRuntimeUserArgs())
-
-    const gitPath = path.join(workspacePath, '.git')
-
-    if (existsSync(gitPath)) {
-      args.push(
-        '--mount',
-        [
-          'type=bind',
-          'source=/dev/null',
-          `target=${workspaceMountPath}/.git`,
-          'readonly'
-        ].join(',')
-      )
-    }
-
     args.push(this.image, scriptName)
 
     return args

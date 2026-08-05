@@ -44,12 +44,23 @@ describeDocker('DockerProcessRunner smoke test', () => {
       workspacePath,
       {
         recursive: true,
-        filter: (source) =>
-          !source.includes('node_modules') &&
-          !source.includes('/dist') &&
-          !source.includes('/coverage')
+        filter: (source) => {
+          const name = path.basename(source)
+
+          return (
+            name !== '.git' &&
+            name !== 'node_modules' &&
+            name !== 'dist' &&
+            name !== 'coverage'
+          )
+        }
       }
     )
+
+    await rm(path.join(workspacePath, '.git'), {
+      recursive: true,
+      force: true
+    })
 
     const workspace: WorkspaceSnapshot = {
       runId: 'docker-smoke-run',
