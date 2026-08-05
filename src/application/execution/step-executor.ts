@@ -26,8 +26,10 @@ export class StepExecutor {
       inputHash
     )
 
-    const checkpoint =
-      await this.checkpointStore.load<TOutput>(executionId)
+    const checkpoint = await this.checkpointStore.load<TOutput>(
+      input.runId,
+      executionId
+    )
 
     if (checkpoint !== null) {
       this.assertValidCheckpoint(
