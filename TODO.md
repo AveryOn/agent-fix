@@ -407,17 +407,17 @@ Two webhook deliveries with the same provider event ID
 must create exactly one payment.
 ```
 
-## 17. Evaluation and Self-Improvement
+## 17. ~~Evaluation and Self-Improvement~~
 
-- [ ] `[118]` define the evaluation case and result formats
-- [ ] `[119]` add a successful duplicate-payment fix case
-- [ ] `[120]` add a hallucinated file reference case
-- [ ] `[121]` add a reproduction test that already passes case
-- [ ] `[122]` add typecheck failure and forbidden file modification cases
-- [ ] `[123]` add a retry-then-success case
-- [ ] `[124]` save an evaluation baseline with prompt versions
-- [ ] `[125]` compare current results with the baseline and detect regressions
-- [ ] `[126]` document one initially missed failure, update the prompt or validator, and rerun evaluations
+- [x] `[118]` define the evaluation case and result formats
+- [x] `[119]` add a successful duplicate-payment fix case
+- [x] `[120]` add a hallucinated file reference case
+- [x] `[121]` add a reproduction test that already passes case
+- [x] `[122]` add typecheck failure and forbidden file modification cases
+- [x] `[123]` add a retry-then-success case
+- [x] `[124]` save an evaluation baseline with prompt versions
+- [x] `[125]` compare current results with the baseline and detect regressions
+- [x] `[126]` document one initially missed failure, update the prompt or validator, and rerun evaluations
 
 Self-improvement loop:
 

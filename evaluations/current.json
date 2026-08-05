@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "agent-fix-core-evaluation",
+  "generatedAt": "2026-08-05T12:20:59.794Z",
+  "promptVersions": {
+    "investigator": "investigator-v1",
+    "reproducer": "reproducer-v2",
+    "implementer": "implementer-v1",
+    "reviewer": "reviewer-v1"
+  },
+  "cases": [
+    {
+      "id": "duplicate-payment-fix",
+      "name": "Successful duplicate-payment fix",
+      "passed": true,
+      "expected": {
+        "classification": "accepted",
+        "passed": true,
+        "attempts": 1,
+        "errorCode": null
+      },
+      "actual": {
+        "classification": "accepted",
+        "passed": true,
+        "attempts": 1,
+        "errorCode": null
+      },
+      "durationMs": 0.3492100000000846
+    },
+    {
+      "id": "hallucinated-file-reference",
+      "name": "Hallucinated file reference",
+      "passed": true,
+      "expected": {
+        "classification": "hallucinated_file_rejected",
+        "passed": false,
+        "attempts": 1,
+        "errorCode": "hallucinated_file"
+      },
+      "actual": {
+        "classification": "hallucinated_file_rejected",
+        "passed": false,
+        "attempts": 1,
+        "errorCode": "hallucinated_file"
+      },
+      "durationMs": 0.19091899999989437
+    },
+    {
+      "id": "reproduction-test-already-passes",
+      "name": "Reproduction test already passes",
+      "passed": true,
+      "expected": {
+        "classification": "pre_fix_test_pass_rejected",
+        "passed": false,
+        "attempts": 1,
+        "errorCode": "test_already_passes"
+      },
+      "actual": {
+        "classification": "pre_fix_test_pass_rejected",
+        "passed": false,
+        "attempts": 1,
+        "errorCode": "test_already_passes"
+      },
+      "durationMs": 0.2546869999999899
+    },
+    {
+      "id": "typecheck-failure",
+      "name": "Typecheck failure",
+      "passed": true,
+      "expected": {
+        "classification": "typecheck_failure_rejected",
+        "passed": false,
+        "attempts": 1,
+        "errorCode": "process_check_failed"
+      },
+      "actual": {
+        "classification": "typecheck_failure_rejected",
+        "passed": false,
+        "attempts": 1,
+        "errorCode": "process_check_failed"
+      },
+      "durationMs": 0.054952000000071166
+    },
+    {
+      "id": "forbidden-file-modification",
+      "name": "Forbidden file modification",
+      "passed": true,
+      "expected": {
+        "classification": "forbidden_file_rejected",
+        "passed": false,
+        "attempts": 1,
+        "errorCode": "changed_file_policy"
+      },
+      "actual": {
+        "classification": "forbidden_file_rejected",
+        "passed": false,
+        "attempts": 1,
+        "errorCode": "changed_file_policy"
+      },
+      "durationMs": 0.17326900000000478
+    },
+    {
+      "id": "retry-then-success",
+      "name": "Retry then success",
+      "passed": true,
+      "expected": {
+        "classification": "accepted_after_retry",
+        "passed": true,
+        "attempts": 2,
+        "errorCode": null
+      },
+      "actual": {
+        "classification": "accepted_after_retry",
+        "passed": true,
+        "attempts": 2,
+        "errorCode": null
+      },
+      "durationMs": 0.42947000000003754
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "passRate": 1
+  }
+}
