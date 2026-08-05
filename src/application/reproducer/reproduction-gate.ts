@@ -40,7 +40,14 @@ export class ReproductionGate {
 
     if (commandResult.succeeded || commandResult.exitCode === 0) {
       throw new ReproducerError(
-        'Reproduction test passed before implementation',
+        [
+          'Reproduction test passed before implementation',
+          'The test asserted the current buggy behavior instead of the desired fixed behavior',
+          `The failing behavioral assertion must contain this exact marker: ${expectedFailureMarker}`,
+          'For duplicate payment delivery, call the handler twice and assert that exactly one payment exists',
+          'Do not assert that two payments exist',
+          'Do not compare the marker string with itself'
+        ].join('. '),
         ReproducerErrorCode.test_already_passes,
         {
           retryable: true

@@ -156,6 +156,12 @@ export class ModelImplementerAgent implements ImplementerAgent {
         patch: normalizeUnifiedDiffHunks(parsedPlan.patch)
       }
 
+      logger.info('Implementer generated patch', {
+        patch: plan.patch,
+        changedFiles: plan.changedFiles,
+        summary: plan.summary
+      })
+
       const expectedChangedFiles = this.patchValidator.validate(
         plan,
         input.allowedFileScope,
@@ -347,8 +353,13 @@ export class ModelImplementerAgent implements ImplementerAgent {
 
       return result
     } catch (error) {
+      const reason =
+        error instanceof Error
+          ? error.message
+          : 'Unknown patch application error'
+
       throw new ImplementerError(
-        'Failed to apply implementation patch',
+        `Failed to apply implementation patch: ${reason}`,
         ImplementerErrorCode.patch_application_failed,
         {
           retryable: true,
