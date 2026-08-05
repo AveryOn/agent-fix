@@ -32,3 +32,8 @@ Thumbs.db
 tmp/
 temp/
 project_whole_code_source.json
+
+node_modules/
+**/node_modules/
+**/dist/
+**/coverage/
