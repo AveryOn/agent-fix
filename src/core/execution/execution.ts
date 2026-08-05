@@ -48,7 +48,10 @@ export interface SaveStepCheckpointInput<T> {
 }
 
 export interface StepCheckpointStore {
-  load<T>(executionId: string): Promise<StepCheckpoint<T> | null>
+  load<T>(
+    runId: string,
+    executionId: string
+  ): Promise<StepCheckpoint<T> | null>
 
   save<T>(input: SaveStepCheckpointInput<T>): Promise<StepCheckpoint<T>>
 }
