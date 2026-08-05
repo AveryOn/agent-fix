@@ -2,28 +2,36 @@ export enum RunStatus {
   created = 'created',
   validating = 'validating',
   ready = 'ready',
+  running = 'running',
   awaiting_approval = 'awaiting_approval',
   approved = 'approved',
   rejected = 'rejected',
-  running = 'running',
   completed = 'completed',
   failed = 'failed',
+  rolled_back = 'rolled_back',
   preparing_workspace = 'preparing_workspace'
 }
 
 export enum RunStepName {
   initialize_run = 'initialize_run',
   validate_target = 'validate_target',
+  prepare_workspace = 'prepare_workspace',
+  investigator = 'investigator',
+  reproducer = 'reproducer',
+  implementer = 'implementer',
+  mechanical_validation = 'mechanical_validation',
+  reviewer = 'reviewer',
   human_approval = 'human_approval',
-  prepare_workspace = 'prepare_workspace'
+  finalize = 'finalize',
+  rollback = 'rollback',
+  cleanup = 'cleanup'
 }
 
 export enum RunStepStatus {
   running = 'running',
   succeeded = 'succeeded',
   rejected = 'rejected',
-  failed = 'failed',
-  preparing_workspace = 'preparing_workspace'
+  failed = 'failed'
 }
 
 export enum HumanApprovalDecision {

@@ -338,19 +338,19 @@ Maximum Attempts Reached
 Fail Run or Escalate to Human
 ```
 
-## 15. Orchestrator and Human Approval
+## 15. ~~Orchestrator and Human Approval~~
 
-- [ ] `[100]` define the complete pipeline step sequence
-- [ ] `[101]` create the run and isolated workspace
-- [ ] `[102]` execute the Investigator Agent
-- [ ] `[103]` execute the Reproducer Agent and enforce the failing-test gate
-- [ ] `[104]` execute the Implementer Agent
-- [ ] `[105]` execute mechanical validation
-- [ ] `[106]` execute the Reviewer Agent
-- [ ] `[107]` display diff, tests, risks, retries, token usage, and cost
-- [ ] `[108]` support human approve and reject decisions
-- [ ] `[109]` save the final diff and approval decision
-- [ ] `[110]` complete, fail, rollback, or clean up the run
+- [x] `[100]` define the complete pipeline step sequence
+- [x] `[101]` create the run and isolated workspace
+- [x] `[102]` execute the Investigator Agent
+- [x] `[103]` execute the Reproducer Agent and enforce the failing-test gate
+- [x] `[104]` execute the Implementer Agent
+- [x] `[105]` execute mechanical validation
+- [x] `[106]` execute the Reviewer Agent
+- [x] `[107]` display diff, tests, risks, retries, token usage, and cost
+- [x] `[108]` support human approve and reject decisions
+- [x] `[109]` save the final diff and approval decision
+- [x] `[110]` complete, fail, rollback, or clean up the run
 
 Pipeline:
 

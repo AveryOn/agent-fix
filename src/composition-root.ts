@@ -16,8 +16,14 @@ import type {
 
 import path from 'node:path'
 import { createApp } from '~/app'
+import {
+  ImplementationRetryRecovery,
+  RetryExecutor,
+  StepExecutor
+} from '~/application/execution'
 import { ModelImplementerAgent } from '~/application/implementer'
 import { ModelInvestigatorAgent } from '~/application/investigator'
+import { PipelineOrchestrator } from '~/application/orchestrator'
 import { ModelReproducerAgent } from '~/application/reproducer'
 import { ModelReviewerAgent } from '~/application/reviewer'
 import { RunCommandHandler, RunService } from '~/application/run'
@@ -32,9 +38,11 @@ import {
   GitTargetRepositoryValidator,
   ReadlineApprovalPrompt
 } from '~/infra/cli'
+import { FileStepCheckpointStore } from '~/infra/execution'
 import { FileImplementationArtifactStore } from '~/infra/implementation'
 import { createPinoLogger } from '~/infra/logging'
 import { OpenAiModelProvider } from '~/infra/openai'
+import { FileFinalRunArtifactStore } from '~/infra/orchestrator'
 import {
   FileProcessResultStore,
   NpmProcessRunnerFactory
@@ -71,15 +79,15 @@ export class CompositionRoot {
   constructor() {
     this.config = new AppConfig(env)
 
+    const runsRoot = this.config.environment.RUNS_ROOT
+
     this.workspaceManager = new GitWorkspaceManager({
-      runsRoot: this.config.environment.RUNS_ROOT
+      runsRoot
     })
 
     this.repositoryToolsFactory = new GitRepositoryToolsFactory()
 
-    const processResultStore = new FileProcessResultStore(
-      this.config.environment.RUNS_ROOT
-    )
+    const processResultStore = new FileProcessResultStore(runsRoot)
 
     this.processRunnerFactory = new NpmProcessRunnerFactory({
       commandTimeoutMs: this.config.environment.COMMAND_TIMEOUT_MS,
@@ -107,7 +115,7 @@ export class CompositionRoot {
     })
 
     const traceWriter = new JsonlTraceWriter({
-      runsRoot: this.config.environment.RUNS_ROOT
+      runsRoot
     })
 
     this.traceRecorder = new TraceRecorder(traceWriter)
@@ -121,7 +129,7 @@ export class CompositionRoot {
     )
 
     const reproductionArtifactStore = new FileReproductionArtifactStore(
-      this.config.environment.RUNS_ROOT
+      runsRoot
     )
 
     this.reproducerAgent = new ModelReproducerAgent(
@@ -135,9 +143,7 @@ export class CompositionRoot {
     )
 
     const implementationArtifactStore =
-      new FileImplementationArtifactStore(
-        this.config.environment.RUNS_ROOT
-      )
+      new FileImplementationArtifactStore(runsRoot)
 
     this.implementerAgent = new ModelImplementerAgent(
       this.modelProvider,
@@ -149,9 +155,7 @@ export class CompositionRoot {
       this.logger
     )
 
-    const reviewArtifactStore = new FileReviewArtifactStore(
-      this.config.environment.RUNS_ROOT
-    )
+    const reviewArtifactStore = new FileReviewArtifactStore(runsRoot)
 
     this.reviewerAgent = new ModelReviewerAgent(
       this.modelProvider,
@@ -161,9 +165,7 @@ export class CompositionRoot {
       this.logger
     )
 
-    const validationReportStore = new FileValidationReportStore(
-      this.config.environment.RUNS_ROOT
-    )
+    const validationReportStore = new FileValidationReportStore(runsRoot)
 
     this.validationService = new DeterministicValidationService(
       this.repositoryToolsFactory,
@@ -175,7 +177,7 @@ export class CompositionRoot {
 
     const output = new ConsoleOutput()
 
-    const runStore = new FileRunStore(this.config.environment.RUNS_ROOT)
+    const runStore = new FileRunStore(runsRoot)
 
     const runService = new RunService(runStore)
 
@@ -183,11 +185,45 @@ export class CompositionRoot {
 
     const approvalPrompt = new ReadlineApprovalPrompt()
 
+    const retryExecutor = new RetryExecutor(
+      this.config.environment.MAX_AGENT_ATTEMPTS
+    )
+
+    const checkpointStore = new FileStepCheckpointStore(runsRoot)
+
+    const stepExecutor = new StepExecutor(checkpointStore)
+
+    const implementationRecovery = new ImplementationRetryRecovery(
+      this.workspaceManager,
+      this.repositoryToolsFactory
+    )
+
+    const finalArtifactStore = new FileFinalRunArtifactStore(runsRoot)
+
+    const pipelineOrchestrator = new PipelineOrchestrator({
+      runService,
+      contextManager: this.contextManager,
+      investigatorAgent: this.investigatorAgent,
+      reproducerAgent: this.reproducerAgent,
+      implementerAgent: this.implementerAgent,
+      validationService: this.validationService,
+      reviewerAgent: this.reviewerAgent,
+      workspaceManager: this.workspaceManager,
+      repositoryToolsFactory: this.repositoryToolsFactory,
+      approvalPrompt,
+      finalArtifactStore,
+      retryExecutor,
+      stepExecutor,
+      implementationRecovery,
+      traceRecorder: this.traceRecorder,
+      logger: this.logger
+    })
+
     const runCommandHandler = new RunCommandHandler(
       runService,
       repositoryValidator,
       this.workspaceManager,
-      approvalPrompt,
+      pipelineOrchestrator,
       output,
       this.logger,
       this.traceRecorder
