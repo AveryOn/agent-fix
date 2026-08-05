@@ -6,12 +6,19 @@ export default tseslint.config(
     ignores: ['dist/**', 'node_modules/**', 'eslint.config.js']
   },
 
-  eslint.configs.recommended,
+  {
+    files: ['**/*.js'],
 
-  ...tseslint.configs.recommendedTypeChecked,
+    ...eslint.configs.recommended
+  },
 
   {
     files: ['**/*.ts'],
+
+    extends: [
+      eslint.configs.recommended,
+      ...tseslint.configs.recommendedTypeChecked
+    ],
 
     languageOptions: {
       parserOptions: {

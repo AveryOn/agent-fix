@@ -187,6 +187,32 @@ describe('ReproductionPatchValidator', () => {
       })
     )
   })
+
+  it('rejects an unmarked assertion before the marked assertion', () => {
+    const validator = new ReproductionPatchValidator()
+
+    const plan = createPlan({
+      patch: [
+        'diff --git a/tests/payment-webhook.test.ts b/tests/payment-webhook.test.ts',
+        'index 1111111..2222222 100644',
+        '--- a/tests/payment-webhook.test.ts',
+        '+++ b/tests/payment-webhook.test.ts',
+        '@@ -1,1 +1,6 @@',
+        ' describe("webhook", () => {})',
+        '+expect(paymentService.getPayments()).toHaveLength(1)',
+        '+expect(',
+        '+  paymentService.getPayments(),',
+        `+  '${marker}'`,
+        '+).toHaveLength(1)'
+      ].join('\n')
+    })
+
+    expect(() => validator.validate(plan, workspaceRevision)).toThrowError(
+      expect.objectContaining({
+        code: ReproducerErrorCode.invalid_patch
+      })
+    )
+  })
 })
 
 function createPlan(

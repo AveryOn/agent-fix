@@ -19,7 +19,7 @@ describe('FilePromptRegistry', () => {
 
     expect(prompts.map((prompt) => prompt.id)).toEqual([
       'investigator-v1',
-      'reproducer-v1',
+      'reproducer-v3',
       'implementer-v1',
       'reviewer-v1'
     ])
@@ -75,7 +75,7 @@ describe('FilePromptRegistry', () => {
     expect(createPromptEvaluationMetadata(versions)).toEqual({
       promptVersions: {
         investigator: 'investigator-v1',
-        reproducer: 'reproducer-v1',
+        reproducer: 'reproducer-v3',
         implementer: 'implementer-v1',
         reviewer: 'reviewer-v1'
       }

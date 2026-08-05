@@ -79,6 +79,26 @@ export class ReproductionPatchValidator {
 
     const addedContent = extractAddedContent(plan.patch)
 
+    const expectCallCount = [...addedContent.matchAll(/\bexpect\s*\(/gu)]
+      .length
+
+    if (expectCallCount > 1) {
+      throw new ReproducerError(
+        [
+          'Reproduction test contains more than one expect() call',
+          `Found expect() calls: ${expectCallCount}`,
+          'An unmarked assertion may fail before the marked behavioral assertion',
+          'This prevents the expected failure marker from reaching the test output',
+          'Use one behavioral assertion and attach the expected failure marker to that assertion',
+          `Example: expect(paymentService.getPayments(), '${plan.expectedFailureMarker}').toHaveLength(1)`
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+
     const usesBeforeEach = /\bbeforeEach\s*\(/u.test(addedContent)
 
     const importsBeforeEach =

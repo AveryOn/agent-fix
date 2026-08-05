@@ -130,7 +130,9 @@ export class ModelReproducerAgent implements ReproducerAgent {
 
       const plan: ReproductionPlan = {
         ...parsedPlan,
-        patch: normalizeUnifiedDiffHunks(parsedPlan.patch)
+        patch: normalizeUnifiedDiffHunks(
+          stripAddedLineTrailingWhitespace(parsedPlan.patch)
+        )
       }
 
       const changedFiles = this.patchValidator.validate(
@@ -523,6 +525,19 @@ function toTraceError(error: unknown): {
   }
 
   return result
+}
+
+function stripAddedLineTrailingWhitespace(patch: string): string {
+  return patch
+    .split(/\r?\n/)
+    .map((line) => {
+      if (line.startsWith('+') && !line.startsWith('+++')) {
+        return line.replace(/[ \t]+$/u, '')
+      }
+
+      return line
+    })
+    .join('\n')
 }
 
 function normalizeUnifiedDiffHunks(patch: string): string {
