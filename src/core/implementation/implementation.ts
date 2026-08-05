@@ -34,7 +34,7 @@ const confirmedEvidenceSchema = z
 
     workspaceRevision: z.string().trim().min(1),
 
-    symbol: z.string().trim().min(1).max(200),
+    symbol: z.string().trim().min(1).nullable().optional(),
 
     lineStart: z.number().int().positive(),
 
@@ -104,9 +104,10 @@ export const reproductionFailureSnapshotSchema = z
   })
   .strict()
   .superRefine((reproduction, context) => {
-    const commandOutput =
+    const commandOutput = normalizeCommandOutput(
       `${reproduction.commandResult.stdout}\n` +
-      reproduction.commandResult.stderr
+        reproduction.commandResult.stderr
+    )
 
     if (!commandOutput.includes(reproduction.expectedFailureMarker)) {
       context.addIssue({
@@ -348,4 +349,14 @@ function isRepositoryRelativePath(value: string): boolean {
       (segment) =>
         segment.length > 0 && segment !== '.' && segment !== '..'
     )
+}
+
+function normalizeCommandOutput(output: string): string {
+  return (
+    output
+
+      // eslint-disable-next-line no-control-regex
+      .replaceAll(/\u001B\[[0-?]*[ -/]*[@-~]/g, '')
+      .replaceAll('\r\n', '\n')
+  )
 }
