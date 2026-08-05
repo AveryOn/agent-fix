@@ -100,6 +100,30 @@ export class ReproductionPatchValidator {
       )
     }
 
+    const untypedVariableDeclarationPattern =
+      /^\s*(?:let|var)\s+[A-Za-z_$][\w$]*\s*;?\s*$/gmu
+
+    const untypedVariableDeclarations = [
+      ...addedContent.matchAll(untypedVariableDeclarationPattern)
+    ].map((match) => match[0].trim())
+
+    if (untypedVariableDeclarations.length > 0) {
+      throw new ReproducerError(
+        [
+          'Reproduction test contains variable declarations without explicit types or initial values',
+          `Invalid declarations: ${untypedVariableDeclarations.join(', ')}`,
+          'Strict TypeScript compilation may infer implicit any for these variables',
+          'Add explicit types or initialize the variables when declaring them',
+          'Example: let paymentService: PaymentService',
+          'Example: let webhookHandler: PaymentWebhookHandler'
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+
     if (!addedContent.includes(plan.expectedFailureMarker)) {
       throw new ReproducerError(
         [
@@ -199,6 +223,36 @@ export class ReproductionPatchValidator {
           `Required marker: ${plan.expectedFailureMarker}`,
           'Do not compare providerEventId or another value with the marker',
           'Use the marker as the assertion message',
+          'Example: expect(payments, marker).toHaveLength(1)'
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+
+    const markerAsExpectSubjectPattern = new RegExp(
+      [
+        'expect\\(',
+        '\\s*',
+        `['"\`]${escapedMarker}['"\`]`,
+        '\\s*',
+        '\\)',
+        '\\s*',
+        '\\.'
+      ].join(''),
+      'u'
+    )
+
+    if (markerAsExpectSubjectPattern.test(addedContent)) {
+      throw new ReproducerError(
+        [
+          'Expected failure marker is used as the value passed to expect()',
+          `Required marker: ${plan.expectedFailureMarker}`,
+          'The marker must be an assertion message, not the asserted value',
+          'Do not use expect(marker).toThrow(), expect(marker).toBe(), or similar assertions',
+          'Use the marker as the second expect argument',
           'Example: expect(payments, marker).toHaveLength(1)'
         ].join('. '),
         ReproducerErrorCode.invalid_patch,
