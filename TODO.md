@@ -537,7 +537,7 @@ Recording structure:
 
 - [x] `[155]` install dependencies from a clean state
 - [x] `[156]` run project typecheck, lint, and build
-- [ ] `[157]` run critical validator and context-management tests
+- [x] `[157]` run critical validator and context-management tests
 - [ ] `[158]` run the complete pipeline integration test
 - [ ] `[159]` run all evaluation cases and compare them with the baseline
 - [ ] `[160]` run one complete live OpenAI workflow
