@@ -109,6 +109,31 @@ describe('ReproductionPatchValidator', () => {
       })
     )
   })
+
+  it('rejects a hunk with incorrect line counts', () => {
+    const validator = new ReproductionPatchValidator()
+
+    const plan = createPlan({
+      patch: [
+        'diff --git a/tests/example.test.ts b/tests/example.test.ts',
+        'new file mode 100644',
+        '--- /dev/null',
+        '+++ b/tests/example.test.ts',
+        '@@ -0,0 +1,2 @@',
+        "+import { expect, it } from 'vitest'",
+        '',
+        "+it('reproduces the bug', () => {",
+        `+  throw new Error('${marker}')`,
+        '+})'
+      ].join('\n')
+    })
+
+    expect(() => validator.validate(plan, workspaceRevision)).toThrowError(
+      expect.objectContaining({
+        code: ReproducerErrorCode.invalid_patch
+      })
+    )
+  })
 })
 
 function createPlan(
@@ -128,7 +153,7 @@ function createPlan(
       'index 1111111..2222222 100644',
       '--- a/tests/payment-webhook.test.ts',
       '+++ b/tests/payment-webhook.test.ts',
-      '@@ -1,1 +1,6 @@',
+      '@@ -1,1 +1,5 @@',
       ' describe("webhook", () => {})',
       '+',
       '+if (payments.length !== 1) {',

@@ -78,13 +78,15 @@ export class InvestigationValidator {
         content
       )
 
-      this.assertSymbolExists(
-        evidence.filePath,
-        evidence.symbol,
-        evidence.lineStart,
-        evidence.lineEnd,
-        content
-      )
+      if (evidence.symbol !== null) {
+        this.assertSymbolExists(
+          evidence.filePath,
+          evidence.symbol,
+          evidence.lineStart,
+          evidence.lineEnd,
+          content
+        )
+      }
     }
 
     this.assertGroundedHypothesis(investigation)
@@ -195,8 +197,16 @@ export class InvestigationValidator {
   private assertGroundedHypothesis(result: InvestigationResult): void {
     const normalizedHypothesis = result.hypothesis.toLowerCase()
 
-    const referencesKnownSymbol = result.evidence.some((evidence) =>
-      normalizedHypothesis.includes(evidence.symbol.toLowerCase())
+    const confirmedSymbols = result.evidence
+      .map((evidence) => evidence.symbol)
+      .filter((symbol): symbol is string => symbol !== null)
+
+    if (confirmedSymbols.length === 0) {
+      return
+    }
+
+    const referencesKnownSymbol = confirmedSymbols.some((symbol) =>
+      normalizedHypothesis.includes(symbol.toLowerCase())
     )
 
     if (!referencesKnownSymbol) {

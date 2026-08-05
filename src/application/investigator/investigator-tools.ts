@@ -13,9 +13,9 @@ const searchCodeInputSchema = z
   .object({
     query: z.string().trim().min(1).max(500),
 
-    caseSensitive: z.boolean().optional(),
+    caseSensitive: z.boolean().nullable(),
 
-    maxResults: z.number().int().min(1).max(100).optional()
+    maxResults: z.number().int().min(1).max(100).nullable()
   })
   .strict()
 
@@ -23,29 +23,30 @@ const readFileInputSchema = z
   .object({
     path: z.string().trim().min(1).max(500),
 
-    lineStart: z.number().int().positive().optional(),
+    lineStart: z.number().int().positive().nullable(),
 
-    lineEnd: z.number().int().positive().optional()
+    lineEnd: z.number().int().positive().nullable()
   })
   .strict()
   .superRefine((input, context) => {
     if (
-      input.lineStart !== undefined &&
-      input.lineEnd !== undefined &&
-      input.lineEnd < input.lineStart
+      typeof input.lineStart !== 'number' ||
+      typeof input.lineEnd !== 'number'
     ) {
+      return
+    }
+
+    if (input.lineEnd < input.lineStart) {
       context.addIssue({
         code: 'custom',
         path: ['lineEnd'],
         message: 'lineEnd must be greater than or equal to lineStart'
       })
+
+      return
     }
 
-    if (
-      input.lineStart !== undefined &&
-      input.lineEnd !== undefined &&
-      input.lineEnd - input.lineStart > 399
-    ) {
+    if (input.lineEnd - input.lineStart > 399) {
       context.addIssue({
         code: 'custom',
         path: ['lineEnd'],
@@ -145,13 +146,13 @@ export class InvestigatorRepositoryTools {
     const matches = await this.repositoryTools.searchCode({
       query: input.query,
 
-      ...(input.caseSensitive === undefined
+      ...(input.caseSensitive === null
         ? {}
         : {
             caseSensitive: input.caseSensitive
           }),
 
-      ...(input.maxResults === undefined
+      ...(input.maxResults === null
         ? {}
         : {
             maxResults: input.maxResults

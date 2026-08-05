@@ -39,7 +39,8 @@ const investigationEvidenceReferenceSchema = z
       .trim()
       .min(1)
       .max(200)
-      .regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/),
+      .regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/)
+      .nullable(),
 
     lineStart: z.number().int().positive(),
 

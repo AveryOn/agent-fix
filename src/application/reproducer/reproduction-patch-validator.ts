@@ -31,6 +31,8 @@ export class ReproductionPatchValidator {
       )
     }
 
+    this.assertValidHunkLineCounts(plan.patch)
+
     for (const marker of forbiddenPatchMarkers) {
       if (plan.patch.includes(marker)) {
         throw new ReproducerError(
@@ -79,8 +81,12 @@ export class ReproductionPatchValidator {
 
     if (!addedContent.includes(plan.expectedFailureMarker)) {
       throw new ReproducerError(
-        'Reproduction patch does not contain the ' +
-          'expected failure marker',
+        [
+          'Reproduction patch does not contain the exact expected failure marker',
+          `Required marker: ${plan.expectedFailureMarker}`,
+          'Add this exact string to the failing assertion message or to the conditional throw that proves the defect',
+          'Do not place it only in expectedFailureMarker output field'
+        ].join('. '),
         ReproducerErrorCode.invalid_patch,
         {
           retryable: true
@@ -89,6 +95,107 @@ export class ReproductionPatchValidator {
     }
 
     return changedFiles
+  }
+
+  private assertValidHunkLineCounts(patch: string): void {
+    const lines = patch.split(/\r?\n/)
+
+    let currentHunkHeader: string | null = null
+
+    let expectedOldLines: number | null = null
+    let expectedNewLines: number | null = null
+
+    let actualOldLines = 0
+    let actualNewLines = 0
+
+    const validateCurrentHunk = (): void => {
+      if (
+        currentHunkHeader === null ||
+        expectedOldLines === null ||
+        expectedNewLines === null
+      ) {
+        return
+      }
+
+      if (
+        actualOldLines !== expectedOldLines ||
+        actualNewLines !== expectedNewLines
+      ) {
+        throw new ReproducerError(
+          [
+            `Invalid unified diff hunk: ${currentHunkHeader}`,
+            `Expected old lines: ${expectedOldLines}`,
+            `Actual old lines: ${actualOldLines}`,
+            `Expected new lines: ${expectedNewLines}`,
+            `Actual new lines: ${actualNewLines}`,
+            'Correct the numbers in the @@ hunk header'
+          ].join('. '),
+          ReproducerErrorCode.invalid_patch,
+          {
+            retryable: true
+          }
+        )
+      }
+    }
+
+    for (const line of lines) {
+      const hunkMatch = line.match(
+        /^@@ -\d+(?:,(\d+))? \+\d+(?:,(\d+))? @@/
+      )
+
+      if (hunkMatch !== null) {
+        validateCurrentHunk()
+
+        currentHunkHeader = line
+
+        expectedOldLines = Number(hunkMatch[1] ?? '1')
+
+        expectedNewLines = Number(hunkMatch[2] ?? '1')
+
+        actualOldLines = 0
+        actualNewLines = 0
+
+        continue
+      }
+
+      if (
+        currentHunkHeader === null ||
+        expectedOldLines === null ||
+        expectedNewLines === null
+      ) {
+        continue
+      }
+
+      if (line.startsWith('diff --git ')) {
+        validateCurrentHunk()
+
+        currentHunkHeader = null
+        expectedOldLines = null
+        expectedNewLines = null
+
+        actualOldLines = 0
+        actualNewLines = 0
+
+        continue
+      }
+
+      if (line.startsWith('+')) {
+        actualNewLines += 1
+        continue
+      }
+
+      if (line.startsWith('-')) {
+        actualOldLines += 1
+        continue
+      }
+
+      if (line.startsWith(' ')) {
+        actualOldLines += 1
+        actualNewLines += 1
+      }
+    }
+
+    validateCurrentHunk()
   }
 }
 

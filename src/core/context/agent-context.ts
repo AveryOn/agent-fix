@@ -30,7 +30,7 @@ export interface EvidenceReference {
   readonly claim: string
   readonly confirmed: boolean
   readonly workspaceRevision: string
-  readonly symbol?: string
+  readonly symbol?: string | null
   readonly lineStart?: number
   readonly lineEnd?: number
 }

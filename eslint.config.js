@@ -11,7 +11,8 @@ export default tseslint.config(
       'node_modules/**',
       '**/*.config.{js,ts}',
       'scripts/**',
-      'fixtures/**'
+      'fixtures/**',
+      '.runs'
     ]
   },
 

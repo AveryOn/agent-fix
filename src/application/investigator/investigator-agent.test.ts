@@ -54,7 +54,9 @@ describe('ModelInvestigatorAgent', () => {
             id: 'call-search',
             name: 'searchCode',
             arguments: {
-              query: 'createPayment'
+              query: 'createPayment',
+              caseSensitive: null,
+              maxResults: null
             }
           },
           {
@@ -168,6 +170,33 @@ describe('ModelInvestigatorAgent', () => {
     })
   })
 
+  it('accepts grounded evidence without a symbol', async () => {
+    const original = createInvestigationResult()
+
+    const result = createInvestigationResult({
+      hypothesis:
+        'The payment creation logic does not check whether the provider event was already processed.',
+      evidence: [
+        {
+          ...getFirstEvidence(original),
+          symbol: null
+        }
+      ]
+    })
+
+    const agent = createAgent(
+      new ScriptedModelProvider([
+        createModelResult({
+          output: result
+        })
+      ]),
+      createRepositoryTools(),
+      new MemoryTraceWriter()
+    )
+
+    await expect(agent.execute(createInput())).resolves.toEqual(result)
+  })
+
   it('rejects a stale investigation result', async () => {
     const result = createInvestigationResult({
       workspaceRevision: 'sha256:old-revision',
@@ -219,6 +248,42 @@ describe('ModelInvestigatorAgent', () => {
       code: InvestigatorErrorCode.unsupported_tool,
       retryable: false
     })
+  })
+  it('disables tools after the interactive tool budget is exhausted', async () => {
+    const toolResult = createModelResult({
+      toolCalls: [
+        {
+          id: 'call-list',
+          name: 'listFiles',
+          arguments: {}
+        }
+      ],
+      responseId: 'response-tool'
+    })
+
+    const results = Array.from({ length: 12 }, () => toolResult)
+
+    results.push(
+      createModelResult({
+        output: createInvestigationResult(),
+        responseId: 'response-final'
+      })
+    )
+
+    const modelProvider = new ScriptedModelProvider(results)
+
+    const agent = createAgent(
+      modelProvider,
+      createRepositoryTools(),
+      new MemoryTraceWriter()
+    )
+
+    const result = await agent.execute(createInput())
+
+    expect(result).toEqual(createInvestigationResult())
+    expect(modelProvider.requests).toHaveLength(13)
+    expect(modelProvider.requests[11]?.tools).toBeDefined()
+    expect(modelProvider.requests[12]?.tools).toEqual([])
   })
 })
 

@@ -126,17 +126,31 @@ export class ModelReproducerAgent implements ReproducerAgent {
         )
       }
 
-      const plan = this.parsePlan(modelResult.output)
+      const parsedPlan = reproductionPlanSchema.parse(modelResult.output)
 
-      const patchFiles = this.patchValidator.validate(
+      const plan: ReproductionPlan = {
+        ...parsedPlan,
+        patch: normalizeUnifiedDiffHunks(parsedPlan.patch)
+      }
+
+      const changedFiles = this.patchValidator.validate(
         plan,
-        sourceWorkspaceRevision
-      )
 
+        input.investigation.workspaceRevision
+      )
       await this.assertFreshWorkspace(
         repositoryTools,
         sourceWorkspaceRevision
       )
+
+      this.logger.info('Reproducer generated patch', {
+        runId: input.context.context.runId,
+        step: reproducerStep,
+        agent: AgentRole.reproducer,
+        patch: plan.patch,
+        testFiles: plan.testFiles,
+        expectedFailureMarker: plan.expectedFailureMarker
+      })
 
       const applyResult = await this.applyPatch(
         input,
@@ -145,7 +159,7 @@ export class ModelReproducerAgent implements ReproducerAgent {
         plan
       )
 
-      assertChangedFilesMatch(patchFiles, applyResult.changedFiles)
+      assertChangedFilesMatch(changedFiles, applyResult.changedFiles)
 
       const patchedWorkspace: WorkspaceSnapshot = {
         ...input.workspace,
@@ -509,4 +523,86 @@ function toTraceError(error: unknown): {
   }
 
   return result
+}
+
+function normalizeUnifiedDiffHunks(patch: string): string {
+  const lines = patch.split(/\r?\n/)
+  const result: string[] = []
+
+  let hunkHeaderIndex: number | null = null
+  let oldStart = 0
+  let newStart = 0
+  let oldCount = 0
+  let newCount = 0
+
+  const flushHunk = (): void => {
+    if (hunkHeaderIndex === null) {
+      return
+    }
+
+    result[hunkHeaderIndex] =
+      `@@ -${oldStart},${oldCount} ` + `+${newStart},${newCount} @@`
+
+    hunkHeaderIndex = null
+    oldCount = 0
+    newCount = 0
+  }
+
+  for (const line of lines) {
+    const hunkMatch = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/)
+
+    if (hunkMatch !== null) {
+      flushHunk()
+
+      oldStart = Number(hunkMatch[1])
+      newStart = Number(hunkMatch[2])
+
+      hunkHeaderIndex = result.length
+      result.push(line)
+
+      continue
+    }
+
+    if (hunkHeaderIndex !== null && line.startsWith('diff --git ')) {
+      flushHunk()
+    }
+
+    if (hunkHeaderIndex !== null) {
+      if (line.startsWith('+')) {
+        newCount += 1
+        result.push(line)
+        continue
+      }
+
+      if (line.startsWith('-')) {
+        oldCount += 1
+        result.push(line)
+        continue
+      }
+
+      if (line.startsWith(' ')) {
+        oldCount += 1
+        newCount += 1
+        result.push(line)
+        continue
+      }
+
+      if (line === '\\ No newline at end of file') {
+        result.push(line)
+        continue
+      }
+
+      if (oldStart === 0) {
+        newCount += 1
+        result.push(`+${line}`)
+        continue
+      }
+    }
+
+    result.push(line)
+  }
+
+  flushHunk()
+
+  return `${result.join('\n').replace(/\n+$/u, '')}\n`
 }

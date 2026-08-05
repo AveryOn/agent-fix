@@ -68,14 +68,16 @@ export class EvidenceReferenceValidator {
         .slice(evidence.lineStart - 1, evidence.lineEnd)
         .join('\n')
 
-      const symbolPattern = createSymbolPattern(evidence.symbol)
+      if (evidence.symbol != null) {
+        const symbolPattern = createSymbolPattern(evidence.symbol)
 
-      if (!symbolPattern.test(selectedContent)) {
-        throw new ValidationError(
-          `Evidence ${evidence.id} references missing symbol ` +
-            `${evidence.symbol}`,
-          ValidationErrorCode.invalid_reference
-        )
+        if (!symbolPattern.test(selectedContent)) {
+          throw new ValidationError(
+            `Evidence ${evidence.id} references missing symbol ` +
+              `${evidence.symbol}`,
+            ValidationErrorCode.invalid_reference
+          )
+        }
       }
     }
   }

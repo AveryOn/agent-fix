@@ -33,6 +33,7 @@ import {
 import { TraceEventType } from '~/core/trace'
 
 const investigatorStep = 'investigator'
+const maximumInteractiveToolIterations = 12
 
 export interface ModelInvestigatorAgentOptions {
   readonly maximumToolIterations?: number
@@ -117,11 +118,15 @@ export class ModelInvestigatorAgent implements InvestigatorAgent {
         iteration <= this.maximumToolIterations;
         iteration += 1
       ) {
+        const tools =
+          iteration <= maximumInteractiveToolIterations
+            ? investigatorTools.definitions
+            : []
         const modelResult = await this.modelProvider.generate({
           input: modelInput,
           outputSchemaName: 'investigation_result',
           outputSchema: investigationResultSchema,
-          tools: investigatorTools.definitions,
+          tools,
 
           ...(previousResponseId === undefined
             ? {}
@@ -244,7 +249,6 @@ export class ModelInvestigatorAgent implements InvestigatorAgent {
       )
     }
   }
-
   private async executeToolCalls(
     input: InvestigationInput,
     promptVersion: PromptVersionIdentifier,
@@ -268,27 +272,61 @@ export class ModelInvestigatorAgent implements InvestigatorAgent {
         }
       })
 
-      const toolResult = await tools.execute(toolCall)
+      try {
+        const toolResult = await tools.execute(toolCall)
 
-      await this.traceRecorder.record({
-        runId: input.context.context.runId,
-        step: investigatorStep,
-        agent: AgentRole.investigator,
-        workspaceRevision: input.context.context.workspaceRevision,
-        type: TraceEventType.tool_result,
-        promptVersion,
-        output: {
+        await this.traceRecorder.record({
+          runId: input.context.context.runId,
+          step: investigatorStep,
+          agent: AgentRole.investigator,
+          workspaceRevision: input.context.context.workspaceRevision,
+          type: TraceEventType.tool_result,
+          promptVersion,
+          output: {
+            callId: toolCall.id,
+            name: toolCall.name,
+            result: toolResult.traceOutput
+          }
+        })
+
+        toolResults.push({
+          type: 'tool_result',
           callId: toolCall.id,
-          name: toolCall.name,
-          result: toolResult.traceOutput
+          output: toolResult.modelOutput
+        })
+      } catch (error) {
+        if (!(error instanceof InvestigatorError && error.retryable)) {
+          throw error
         }
-      })
 
-      toolResults.push({
-        type: 'tool_result',
-        callId: toolCall.id,
-        output: toolResult.modelOutput
-      })
+        const toolError = {
+          error: {
+            code: error.code,
+            message: error.message,
+            retryable: true
+          }
+        }
+
+        await this.traceRecorder.record({
+          runId: input.context.context.runId,
+          step: investigatorStep,
+          agent: AgentRole.investigator,
+          workspaceRevision: input.context.context.workspaceRevision,
+          type: TraceEventType.tool_result,
+          promptVersion,
+          output: {
+            callId: toolCall.id,
+            name: toolCall.name,
+            result: toolError
+          }
+        })
+
+        toolResults.push({
+          type: 'tool_result',
+          callId: toolCall.id,
+          output: JSON.stringify(toolError)
+        })
+      }
     }
 
     return toolResults

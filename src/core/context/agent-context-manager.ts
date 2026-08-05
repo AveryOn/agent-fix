@@ -276,7 +276,7 @@ function formatEvidenceLocation(evidence: EvidenceReference): string {
         ? `:${evidence.lineStart}`
         : `:${evidence.lineStart}-${evidence.lineEnd}`
 
-  const symbol = evidence.symbol === undefined ? '' : `#${evidence.symbol}`
+  const symbol = evidence.symbol == null ? '' : `#${evidence.symbol}`
 
   return `${evidence.filePath}${lineRange}${symbol}`
 }

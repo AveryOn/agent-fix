@@ -39,6 +39,17 @@ The Reproducer prompt was updated from `reproducer-v1` to
 The new prompt explicitly requires a non-zero pre-fix test result containing
 the exact expected failure marker.
 
+## Second prompt change
+
+The Reproducer prompt was updated from `reproducer-v2` to
+`reproducer-v3`.
+
+The new version requires the expected failure marker to be emitted by
+the exact assertion or conditional check that proves the defect.
+
+It also rejects unreachable marker placement after a failing assertion
+and requires all used test framework helpers to be imported.
+
 ## Regression case
 
 `reproduction-test-already-passes` supplies a successful pre-fix test result.

@@ -103,7 +103,7 @@ function createResult(): EvaluationRunResult {
     promptVersions: {
       investigator: 'investigator-v1',
 
-      reproducer: 'reproducer-v2',
+      reproducer: 'reproducer-v3',
 
       implementer: 'implementer-v1',
 
