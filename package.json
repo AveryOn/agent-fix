@@ -23,7 +23,8 @@
     "verify": "./scripts/push-verify.sh",
     "prepare": "husky",
     "source-code:generate": "node scripts/generate-project-source.mjs",
-    "git:push": "./scripts/git-push.sh"
+    "git:push": "./scripts/git-push.sh",
+    "monitor": "tsx scripts/monitor.ts"
   },
   "repository": {
     "type": "git",
