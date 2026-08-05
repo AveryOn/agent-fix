@@ -17,7 +17,11 @@ describe('parseEnvironment', () => {
       CONTEXT_TOKEN_BUDGET: '4000',
       LOG_LEVEL: 'silent',
       LOG_PRETTY: 'false',
-      DOCKER_ENABLED: 'true'
+      DOCKER_ENABLED: 'true',
+      DOCKER_IMAGE: 'agent-fix-test:local',
+      DOCKER_MEMORY_MB: '768',
+      DOCKER_CPUS: '1.5',
+      DOCKER_PIDS_LIMIT: '128'
     })
 
     expect(environment).toEqual({
@@ -31,7 +35,11 @@ describe('parseEnvironment', () => {
       CONTEXT_TOKEN_BUDGET: 4000,
       LOG_LEVEL: 'silent',
       LOG_PRETTY: false,
-      DOCKER_ENABLED: true
+      DOCKER_ENABLED: true,
+      DOCKER_IMAGE: 'agent-fix-test:local',
+      DOCKER_MEMORY_MB: 768,
+      DOCKER_CPUS: 1.5,
+      DOCKER_PIDS_LIMIT: 128
     })
   })
 
@@ -50,6 +58,10 @@ describe('parseEnvironment', () => {
     expect(environment.LOG_LEVEL).toBe('info')
     expect(environment.LOG_PRETTY).toBe(false)
     expect(environment.DOCKER_ENABLED).toBe(false)
+    expect(environment.DOCKER_IMAGE).toBe('agent-fix-sandbox:local')
+    expect(environment.DOCKER_MEMORY_MB).toBe(512)
+    expect(environment.DOCKER_CPUS).toBe(1)
+    expect(environment.DOCKER_PIDS_LIMIT).toBe(256)
   })
 
   it('rejects invalid environment variables', () => {

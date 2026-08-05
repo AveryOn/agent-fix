@@ -1,6 +1,11 @@
 node_modules
+**/node_modules
+
 dist
+**/dist
+
 coverage
+**/coverage
 
 .git
 .gitignore
@@ -12,9 +17,16 @@ coverage
 .env
 .env.*
 
+.runs
+.runs-test
+
 *.log
 
 README.md
 docs
 tests
+
+evaluations/current.json
+evaluations/comparison.json
+
 project_whole_code_source.json

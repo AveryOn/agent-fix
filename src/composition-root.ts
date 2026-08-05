@@ -44,6 +44,7 @@ import { createPinoLogger } from '~/infra/logging'
 import { OpenAiModelProvider } from '~/infra/openai'
 import { FileFinalRunArtifactStore } from '~/infra/orchestrator'
 import {
+  DockerProcessRunnerFactory,
   FileProcessResultStore,
   NpmProcessRunnerFactory
 } from '~/infra/process'
@@ -89,10 +90,19 @@ export class CompositionRoot {
 
     const processResultStore = new FileProcessResultStore(runsRoot)
 
-    this.processRunnerFactory = new NpmProcessRunnerFactory({
-      commandTimeoutMs: this.config.environment.COMMAND_TIMEOUT_MS,
-      resultStore: processResultStore
-    })
+    this.processRunnerFactory = this.config.environment.DOCKER_ENABLED
+      ? new DockerProcessRunnerFactory({
+          image: this.config.environment.DOCKER_IMAGE,
+          commandTimeoutMs: this.config.environment.COMMAND_TIMEOUT_MS,
+          memoryMb: this.config.environment.DOCKER_MEMORY_MB,
+          cpus: this.config.environment.DOCKER_CPUS,
+          pidsLimit: this.config.environment.DOCKER_PIDS_LIMIT,
+          resultStore: processResultStore
+        })
+      : new NpmProcessRunnerFactory({
+          commandTimeoutMs: this.config.environment.COMMAND_TIMEOUT_MS,
+          resultStore: processResultStore
+        })
 
     this.promptRegistry = new FilePromptRegistry({
       promptsRoot: path.resolve('prompts')

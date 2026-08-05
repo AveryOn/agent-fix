@@ -480,17 +480,17 @@ p95RunLatencyMs
 evaluationRegressionRate
 ```
 
-## 19. Docker Environment
+## 19. ~~Docker Environment~~
 
-- [ ] `[135]` create a Node.js 24 Dockerfile
-- [ ] `[136]` install Git and ripgrep
-- [ ] `[137]` install project and fixture dependencies
-- [ ] `[138]` run the container as a non-root user
-- [ ] `[139]` mount only the isolated run workspace
-- [ ] `[140]` exclude OpenAI, Git, and environment secrets from the sandbox
-- [ ] `[141]` execute test, typecheck, lint, and build inside the container
-- [ ] `[142]` add command timeout and container resource limits
-- [ ] `[143]` add a Docker environment smoke test
+- [x] `[135]` create a Node.js 24 Dockerfile
+- [x] `[136]` install Git and ripgrep
+- [x] `[137]` install project and fixture dependencies
+- [x] `[138]` run the container as a non-root user
+- [x] `[139]` mount only the isolated run workspace
+- [x] `[140]` exclude OpenAI, Git, and environment secrets from the sandbox
+- [x] `[141]` execute test, typecheck, lint, and build inside the container
+- [x] `[142]` add command timeout and container resource limits
+- [x] `[143]` add a Docker environment smoke test
 
 Docker execution boundary:
 
