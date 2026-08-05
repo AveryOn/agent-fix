@@ -58,6 +58,10 @@ describe('parseEnvironment', () => {
     expect(environment.LOG_LEVEL).toBe('info')
     expect(environment.LOG_PRETTY).toBe(false)
     expect(environment.DOCKER_ENABLED).toBe(false)
+    expect(environment.DOCKER_IMAGE).toBe('agent-fix-sandbox:local')
+    expect(environment.DOCKER_MEMORY_MB).toBe(512)
+    expect(environment.DOCKER_CPUS).toBe(1)
+    expect(environment.DOCKER_PIDS_LIMIT).toBe(256)
   })
 
   it('rejects invalid environment variables', () => {
