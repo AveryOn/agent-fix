@@ -153,7 +153,7 @@ export const reviewRiskSchema = z
 
     description: z.string().trim().min(1).max(3000),
 
-    mitigation: z.string().trim().min(1).max(2000).optional(),
+    mitigation: z.string().trim().min(1).max(2000).nullable(),
 
     evidence: z.array(diffEvidenceReferenceSchema).min(1).max(20)
   })
@@ -165,7 +165,7 @@ export const publicApiChangeSchema = z
 
     filePath: repositoryRelativePathSchema,
 
-    symbol: z.string().trim().min(1).max(300).optional(),
+    symbol: z.string().trim().min(1).max(300).nullable(),
 
     description: z.string().trim().min(1).max(3000),
 
