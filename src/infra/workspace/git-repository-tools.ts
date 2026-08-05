@@ -335,14 +335,36 @@ export class GitRepositoryTools implements RepositoryTools {
   async getDiff(): Promise<string> {
     const pathspec = this.getPathspec()
 
-    const result = await this.git.run(
-      ['diff', '--binary', '--no-ext-diff', 'HEAD', '--', pathspec],
+    const untrackedResult = await this.git.run(
+      ['ls-files', '--others', '--exclude-standard', '-z', '--', pathspec],
       this.workspace.workspaceRoot
     )
 
-    return result.stdout
-  }
+    const untrackedFiles = splitNull(untrackedResult.stdout)
 
+    if (untrackedFiles.length > 0) {
+      await this.git.run(
+        ['add', '--intent-to-add', '--', ...untrackedFiles],
+        this.workspace.workspaceRoot
+      )
+    }
+
+    try {
+      const result = await this.git.run(
+        ['diff', '--binary', '--no-ext-diff', 'HEAD', '--', pathspec],
+        this.workspace.workspaceRoot
+      )
+
+      return result.stdout
+    } finally {
+      if (untrackedFiles.length > 0) {
+        await this.git.run(
+          ['reset', '--quiet', '--', ...untrackedFiles],
+          this.workspace.workspaceRoot
+        )
+      }
+    }
+  }
   async getChangedFiles(): Promise<readonly string[]> {
     const pathspec = this.getPathspec()
 

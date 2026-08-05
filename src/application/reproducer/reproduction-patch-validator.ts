@@ -79,6 +79,27 @@ export class ReproductionPatchValidator {
 
     const addedContent = extractAddedContent(plan.patch)
 
+    const usesBeforeEach = /\bbeforeEach\s*\(/u.test(addedContent)
+
+    const importsBeforeEach =
+      /import\s*\{[^}]*\bbeforeEach\b[^}]*\}\s*from\s*['"]vitest['"]/u.test(
+        addedContent
+      )
+
+    if (usesBeforeEach && !importsBeforeEach) {
+      throw new ReproducerError(
+        [
+          'Reproduction test uses beforeEach without importing it from vitest',
+          'Add beforeEach to the vitest import',
+          "Example: import { beforeEach, describe, expect, it } from 'vitest'"
+        ].join('. '),
+        ReproducerErrorCode.invalid_patch,
+        {
+          retryable: true
+        }
+      )
+    }
+
     if (!addedContent.includes(plan.expectedFailureMarker)) {
       throw new ReproducerError(
         [

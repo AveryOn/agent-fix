@@ -158,6 +158,35 @@ describe('ReproductionPatchValidator', () => {
       })
     )
   })
+
+  it('rejects beforeEach without a vitest import', () => {
+    const validator = new ReproductionPatchValidator()
+
+    const plan = createPlan({
+      patch: [
+        'diff --git a/tests/payment-webhook.test.ts b/tests/payment-webhook.test.ts',
+        'new file mode 100644',
+        '--- /dev/null',
+        '+++ b/tests/payment-webhook.test.ts',
+        '@@ -0,0 +1,8 @@',
+        "+import { describe, expect, it } from 'vitest'",
+        '+',
+        "+describe('webhook', () => {",
+        '+  beforeEach(() => {})',
+        '+',
+        '+  expect(',
+        `+    payments, '${marker}'`,
+        '+  ).toHaveLength(1)',
+        '+})'
+      ].join('\n')
+    })
+
+    expect(() => validator.validate(plan, workspaceRevision)).toThrowError(
+      expect.objectContaining({
+        code: ReproducerErrorCode.invalid_patch
+      })
+    )
+  })
 })
 
 function createPlan(

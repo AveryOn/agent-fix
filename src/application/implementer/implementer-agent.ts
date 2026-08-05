@@ -1,6 +1,7 @@
 import type {
   ImplementationArtifactStore,
   ImplementationInput,
+  ImplementationModelPlan,
   ImplementationPlan,
   ImplementationResult,
   ImplementerAgent
@@ -30,7 +31,7 @@ import {
   ImplementerError,
   ImplementerErrorCode,
   implementationInputSchema,
-  implementationPlanSchema
+  implementationModelPlanSchema
 } from '~/core/implementation'
 import { TraceEventType } from '~/core/trace'
 
@@ -110,8 +111,6 @@ export class ModelImplementerAgent implements ImplementerAgent {
                 constraints: input.context.context.constraints
               },
 
-              confirmedEvidence: input.evidence,
-
               currentSourceFiles: sourceFiles,
 
               failingTest: {
@@ -126,8 +125,8 @@ export class ModelImplementerAgent implements ImplementerAgent {
             })
           }
         ],
-        outputSchemaName: 'implementation_plan',
-        outputSchema: implementationPlanSchema
+        outputSchemaName: 'implementation_model_plan',
+        outputSchema: implementationModelPlanSchema
       })
 
       await this.recordModelCall(input, prompt.id, modelResult)
@@ -151,9 +150,14 @@ export class ModelImplementerAgent implements ImplementerAgent {
 
       const parsedPlan = this.parsePlan(modelResult.output)
 
+      const patch = buildImplementationPatch(sourceFiles, parsedPlan)
+
       const plan: ImplementationPlan = {
-        ...parsedPlan,
-        patch: normalizeUnifiedDiffHunks(parsedPlan.patch)
+        summary: parsedPlan.summary,
+        patch,
+        changedFiles: parsedPlan.changedFiles,
+        risks: parsedPlan.risks,
+        workspaceRevision: parsedPlan.workspaceRevision
       }
 
       logger.info('Implementer generated patch', {
@@ -314,8 +318,8 @@ export class ModelImplementerAgent implements ImplementerAgent {
     }
   }
 
-  private parsePlan(value: unknown): ImplementationPlan {
-    const result = implementationPlanSchema.safeParse(value)
+  private parsePlan(value: unknown): ImplementationModelPlan {
+    const result = implementationModelPlanSchema.safeParse(value)
 
     if (!result.success) {
       throw new ImplementerError(
@@ -448,7 +452,7 @@ export class ModelImplementerAgent implements ImplementerAgent {
   private recordModelCall(
     input: ImplementationInput,
     promptVersion: PromptVersionIdentifier,
-    result: ModelResult<ImplementationPlan>
+    result: ModelResult<ImplementationModelPlan>
   ): Promise<void> {
     return this.traceRecorder.record({
       runId: input.context.context.runId,
@@ -495,145 +499,107 @@ export class ModelImplementerAgent implements ImplementerAgent {
   }
 }
 
-function normalizeUnifiedDiffHunks(patch: string): string {
-  const sourceLines = patch.split(/\r?\n/).map((line) => {
-    if (line.startsWith('+')) {
-      return '+' + line.slice(1).replace(/[ \t]+$/u, '')
-    }
-
-    return line
-  })
-
-  const canonicalLines: string[] = []
-  let hasPendingDiffHeader = false
-
-  for (let index = 0; index < sourceLines.length; index += 1) {
-    const line = sourceLines[index] || ''
-
-    if (line.startsWith('diff --git ')) {
-      canonicalLines.push(line)
-      hasPendingDiffHeader = true
-      continue
-    }
-
-    if (
-      line.startsWith('--- ') &&
-      sourceLines[index + 1]?.startsWith('+++ ')
-    ) {
-      const oldPath = normalizePatchPath(line.slice(4))
-
-      const newPath = normalizePatchPath(
-        (sourceLines[index + 1] || '').slice(4)
-      )
-
-      if (!hasPendingDiffHeader) {
-        const diffOldPath = oldPath === '/dev/null' ? newPath : oldPath
-
-        const diffNewPath = newPath === '/dev/null' ? oldPath : newPath
-
-        canonicalLines.push(`diff --git a/${diffOldPath} b/${diffNewPath}`)
-      }
-
-      canonicalLines.push(
-        oldPath === '/dev/null' ? '--- /dev/null' : `--- a/${oldPath}`
-      )
-
-      canonicalLines.push(
-        newPath === '/dev/null' ? '+++ /dev/null' : `+++ b/${newPath}`
-      )
-
-      hasPendingDiffHeader = false
-      index += 1
-      continue
-    }
-
-    canonicalLines.push(line)
-  }
-
-  const result: string[] = []
-
-  let hunkHeaderIndex: number | null = null
-  let oldStart = 0
-  let newStart = 0
-  let oldCount = 0
-  let newCount = 0
-
-  const flushHunk = (): void => {
-    if (hunkHeaderIndex === null) {
-      return
-    }
-
-    result[hunkHeaderIndex] =
-      `@@ -${oldStart},${oldCount} ` + `+${newStart},${newCount} @@`
-
-    hunkHeaderIndex = null
-    oldCount = 0
-    newCount = 0
-  }
-
-  for (const line of canonicalLines) {
-    const hunkMatch = line.match(
-      /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/u
-    )
-
-    if (hunkMatch !== null) {
-      flushHunk()
-
-      oldStart = Number(hunkMatch[1])
-      newStart = Number(hunkMatch[2])
-
-      hunkHeaderIndex = result.length
-      result.push(line)
-
-      continue
-    }
-
-    if (hunkHeaderIndex !== null && line.startsWith('diff --git ')) {
-      flushHunk()
-    }
-
-    if (hunkHeaderIndex !== null) {
-      if (line.startsWith('+')) {
-        newCount += 1
-        result.push(line)
-        continue
-      }
-
-      if (line.startsWith('-')) {
-        oldCount += 1
-        result.push(line)
-        continue
-      }
-
-      if (line.startsWith(' ')) {
-        oldCount += 1
-        newCount += 1
-        result.push(line)
-        continue
-      }
-
-      if (line === '\\ No newline at end of file') {
-        result.push(line)
-        continue
-      }
-    }
-
-    result.push(line)
-  }
-
-  flushHunk()
-
-  return `${result.join('\n').replace(/\n+$/u, '')}\n`
+interface CurrentSourceFile {
+  readonly path: string
+  readonly content: string
 }
 
-function normalizePatchPath(path: string): string {
-  const normalized = path.trim()
+function buildImplementationPatch(
+  sourceFiles: readonly CurrentSourceFile[],
+  plan: ImplementationModelPlan
+): string {
+  const sourceFilesByPath = new Map(
+    sourceFiles.map((file) => [file.path, file.content])
+  )
 
-  if (normalized === '/dev/null') {
-    return normalized
+  const patches: string[] = []
+
+  for (const changedFile of plan.files) {
+    const currentContent = sourceFilesByPath.get(changedFile.path)
+
+    if (currentContent === undefined) {
+      throw new ImplementerError(
+        `Implementation changed a file that was not supplied in currentSourceFiles: ${changedFile.path}`,
+        ImplementerErrorCode.invalid_output,
+        {
+          retryable: true
+        }
+      )
+    }
+
+    if (currentContent === changedFile.content) {
+      throw new ImplementerError(
+        `Implementation returned unchanged content for ${changedFile.path}`,
+        ImplementerErrorCode.invalid_output,
+        {
+          retryable: true
+        }
+      )
+    }
+
+    patches.push(
+      buildWholeFilePatch(
+        changedFile.path,
+        currentContent,
+        changedFile.content
+      )
+    )
   }
 
-  return normalized.replace(/^[ab]\//u, '')
+  return `${patches.join('\n')}\n`
+}
+
+function buildWholeFilePatch(
+  filePath: string,
+  currentContent: string,
+  nextContent: string
+): string {
+  const oldLines = splitFileLines(currentContent)
+
+  const newLines = splitFileLines(nextContent)
+
+  const oldCount = oldLines.length
+  const newCount = newLines.length
+
+  const oldStart = oldCount === 0 ? 0 : 1
+  const newStart = newCount === 0 ? 0 : 1
+
+  const lines = [
+    `diff --git a/${filePath} b/${filePath}`,
+    `--- a/${filePath}`,
+    `+++ b/${filePath}`,
+    `@@ -${oldStart},${oldCount} +${newStart},${newCount} @@`,
+    ...oldLines.map((line) => `-${line}`),
+    ...newLines.map((line) => `+${line}`)
+  ]
+
+  if (currentContent.length > 0 && !currentContent.endsWith('\n')) {
+    const oldLastLineIndex = 4 + oldLines.length - 1
+
+    lines.splice(oldLastLineIndex + 1, 0, '\\ No newline at end of file')
+  }
+
+  if (nextContent.length > 0 && !nextContent.endsWith('\n')) {
+    lines.push('\\ No newline at end of file')
+  }
+
+  return lines.join('\n')
+}
+
+function splitFileLines(content: string): string[] {
+  if (content.length === 0) {
+    return []
+  }
+
+  const normalized = content.replaceAll('\r\n', '\n')
+
+  const lines = normalized.split('\n')
+
+  if (normalized.endsWith('\n')) {
+    lines.pop()
+  }
+
+  return lines
 }
 
 function assertChangedFilesMatch(

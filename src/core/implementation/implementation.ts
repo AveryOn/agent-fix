@@ -250,6 +250,81 @@ export const implementationInputSchema = z
     }
   })
 
+export const implementationFileChangeSchema = z
+  .object({
+    path: repositoryRelativePathSchema,
+
+    content: z.string().max(500_000)
+  })
+  .strict()
+
+export const implementationModelPlanSchema = z
+  .object({
+    summary: z.string().trim().min(1).max(2000),
+
+    files: z.array(implementationFileChangeSchema).min(1).max(100),
+
+    changedFiles: z.array(repositoryRelativePathSchema).min(1).max(100),
+
+    risks: z.array(z.string().trim().min(1).max(1000)).max(20),
+
+    workspaceRevision: z.string().trim().min(1)
+  })
+  .strict()
+  .superRefine((plan, context) => {
+    const changedFiles = new Set(plan.changedFiles)
+
+    if (changedFiles.size !== plan.changedFiles.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['changedFiles'],
+        message: 'Implementation output contains duplicate changed files'
+      })
+    }
+
+    const filePaths = plan.files.map((file) => file.path)
+
+    const uniqueFilePaths = new Set(filePaths)
+
+    if (uniqueFilePaths.size !== filePaths.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['files'],
+        message: 'Implementation output contains duplicate file changes'
+      })
+    }
+
+    const normalizedChangedFiles = [...changedFiles].sort()
+
+    const normalizedFilePaths = [...uniqueFilePaths].sort()
+
+    if (normalizedChangedFiles.length !== normalizedFilePaths.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['changedFiles'],
+        message: 'changedFiles must match files paths'
+      })
+
+      return
+    }
+
+    for (
+      let index = 0;
+      index < normalizedChangedFiles.length;
+      index += 1
+    ) {
+      if (normalizedChangedFiles[index] !== normalizedFilePaths[index]) {
+        context.addIssue({
+          code: 'custom',
+          path: ['changedFiles'],
+          message: 'changedFiles must match files paths'
+        })
+
+        return
+      }
+    }
+  })
+
 export const implementationPlanSchema = z
   .object({
     summary: z.string().trim().min(1).max(2000),
@@ -282,6 +357,9 @@ export type ReproductionFailureSnapshot = z.infer<
 >
 
 export type ImplementationPlan = z.infer<typeof implementationPlanSchema>
+export type ImplementationModelPlan = z.infer<
+  typeof implementationModelPlanSchema
+>
 
 export interface ImplementationInput {
   readonly context: AgentContextSnapshot
