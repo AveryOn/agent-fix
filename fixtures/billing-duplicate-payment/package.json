@@ -1,0 +1,28 @@
+{
+  "name": "billing-duplicate-payment-fixture",
+  "version": "1.0.0",
+  "description": "AgentFix fixture containing a duplicate payment webhook bug",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "build": "tsc -p tsconfig.build.json",
+    "verify:bug": "tsx scripts/verify-duplicate-bug.ts",
+    "verify": "npm run typecheck && npm run lint && npm run build && npm run test"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^26.0.0",
+    "eslint": "^9.39.4",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1",
+    "vitest": "^4.1.10"
+  }
+}
