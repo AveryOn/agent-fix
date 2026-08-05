@@ -79,6 +79,19 @@ export class ModelImplementerAgent implements ImplementerAgent {
         sourceWorkspaceRevision
       )
 
+      const sourceFiles = await Promise.all(
+        [
+          ...new Set(input.evidence.map((evidence) => evidence.filePath))
+        ].map(async (filePath) => {
+          const file = await repositoryTools.readFile(filePath)
+
+          return {
+            path: file.path,
+            content: file.content
+          }
+        })
+      )
+
       const modelResult = await this.modelProvider.generate({
         input: [
           {
@@ -98,6 +111,8 @@ export class ModelImplementerAgent implements ImplementerAgent {
               },
 
               confirmedEvidence: input.evidence,
+
+              currentSourceFiles: sourceFiles,
 
               failingTest: {
                 testFiles: input.reproduction.testFiles,
@@ -134,7 +149,12 @@ export class ModelImplementerAgent implements ImplementerAgent {
         )
       }
 
-      const plan = this.parsePlan(modelResult.output)
+      const parsedPlan = this.parsePlan(modelResult.output)
+
+      const plan: ImplementationPlan = {
+        ...parsedPlan,
+        patch: normalizeUnifiedDiffHunks(parsedPlan.patch)
+      }
 
       const expectedChangedFiles = this.patchValidator.validate(
         plan,
@@ -505,4 +525,80 @@ function toTraceError(error: unknown): {
   }
 
   return result
+}
+
+function normalizeUnifiedDiffHunks(patch: string): string {
+  const lines = patch.split(/\r?\n/)
+  const result: string[] = []
+
+  let hunkHeaderIndex: number | null = null
+  let oldStart = 0
+  let newStart = 0
+  let oldCount = 0
+  let newCount = 0
+
+  const flushHunk = (): void => {
+    if (hunkHeaderIndex === null) {
+      return
+    }
+
+    result[hunkHeaderIndex] =
+      `@@ -${oldStart},${oldCount} ` + `+${newStart},${newCount} @@`
+
+    hunkHeaderIndex = null
+    oldCount = 0
+    newCount = 0
+  }
+
+  for (const line of lines) {
+    const hunkMatch = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/)
+
+    if (hunkMatch !== null) {
+      flushHunk()
+
+      oldStart = Number(hunkMatch[1])
+      newStart = Number(hunkMatch[2])
+
+      hunkHeaderIndex = result.length
+      result.push(line)
+
+      continue
+    }
+
+    if (hunkHeaderIndex !== null && line.startsWith('diff --git ')) {
+      flushHunk()
+    }
+
+    if (hunkHeaderIndex !== null) {
+      if (line.startsWith('+')) {
+        newCount += 1
+        result.push(line)
+        continue
+      }
+
+      if (line.startsWith('-')) {
+        oldCount += 1
+        result.push(line)
+        continue
+      }
+
+      if (line.startsWith(' ')) {
+        oldCount += 1
+        newCount += 1
+        result.push(line)
+        continue
+      }
+
+      if (line === '\\ No newline at end of file') {
+        result.push(line)
+        continue
+      }
+    }
+
+    result.push(line)
+  }
+
+  flushHunk()
+
+  return `${result.join('\n').replace(/\n+$/u, '')}\n`
 }
