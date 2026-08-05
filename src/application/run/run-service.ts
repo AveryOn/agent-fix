@@ -271,6 +271,40 @@ export class RunService {
     return nextState
   }
 
+  async updateWorkspaceRevision(
+    state: RunState,
+    workspace: WorkspaceSnapshot
+  ): Promise<RunState> {
+    const timestamp = this.now().toISOString()
+
+    const nextState: RunState = {
+      ...state,
+      workspaceRevision: workspace.workspaceRevision,
+      updatedAt: timestamp
+    }
+
+    await this.store.saveState(nextState)
+
+    return nextState
+  }
+
+  async completeRun(
+    state: RunState,
+    status: RunStatus.completed | RunStatus.rolled_back,
+    message: string
+  ): Promise<RunState> {
+    if (
+      state.currentStep !== RunStepName.finalize &&
+      state.currentStep !== RunStepName.rollback
+    ) {
+      throw new Error(
+        `Cannot complete run from step ${state.currentStep ?? 'none'}`
+      )
+    }
+
+    return this.completeStep(state, state.currentStep, status, message)
+  }
+
   private assertCurrentStep(state: RunState, stepName: RunStepName): void {
     if (state.currentStep !== stepName) {
       throw new Error(
