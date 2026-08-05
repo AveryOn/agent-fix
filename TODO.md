@@ -539,9 +539,9 @@ Recording structure:
 - [x] `[156]` run project typecheck, lint, and build
 - [x] `[157]` run critical validator and context-management tests
 - [x] `[158]` run the complete pipeline integration test
-- [ ] `[159]` run all evaluation cases and compare them with the baseline
+- [x] `[159]` run all evaluation cases and compare them with the baseline
 - [ ] `[160]` run one complete live OpenAI workflow
-- [ ] `[161]` verify one implementation retry followed by success
-- [ ] `[162]` verify one hallucinated or forbidden change is blocked
+- [x] `[161]` verify one implementation retry followed by success
+- [x] `[162]` verify one hallucinated or forbidden change is blocked
 - [ ] `[163]` verify traces, context revisions, token usage, cost, latency, and monitoring metrics
 - [ ] `[164]` verify Docker execution and prepare the final demonstration run
